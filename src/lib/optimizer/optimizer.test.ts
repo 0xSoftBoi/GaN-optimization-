@@ -155,9 +155,18 @@ describe("designConverter — efficiency curve", () => {
   it("has the 5 standard load points with losses increasing in load", () => {
     const r = buck();
     expect(r.efficiencyCurve.map((p) => p.loadPct)).toEqual([10, 25, 50, 75, 100]);
-    for (let i = 1; i < r.efficiencyCurve.length; i++) {
+    // EXPECTATION SHIFT (it2, §D9): loss is monotone in load from 25 % up.
+    // At 10 % the fixed 40 ns dead time no longer delivers Q_node — the
+    // charge-criterion ZVS resolver prices a partial-ZVS capacitive residual
+    // (the real light-load tradeoff), so lossW(10 %) may exceed lossW(25 %).
+    // v1's binary ZVS flag hid this and made the whole curve monotone.
+    for (let i = 2; i < r.efficiencyCurve.length; i++) {
       expect(r.efficiencyCurve[i].lossW).toBeGreaterThan(r.efficiencyCurve[i - 1].lossW);
     }
+    const p10 = r.efficiencyCurve[0];
+    const p100 = r.efficiencyCurve[r.efficiencyCurve.length - 1];
+    expect(p10.lossW).toBeGreaterThan(0);
+    expect(p10.lossW).toBeLessThan(p100.lossW);
   });
 
   it("peaks above 10 % load (fixed losses dominate at light load)", () => {

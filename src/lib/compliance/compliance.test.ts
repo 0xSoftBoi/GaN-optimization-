@@ -268,6 +268,34 @@ describe("checkCompliance", () => {
     expect(ins.severity).toBe("pass");
     expect(ins.detail).toContain("mm"); // states required distances
   });
+
+  it("warns when the estimated switch-node dv/dt exceeds the driver CMTI class (U40/§E4)", () => {
+    // Fast 650 V GaN at a 400 V bus: §D3 voltage-fall ≈ 1 ns → ~370 V/ns,
+    // well past the 100 V/ns CMTI class → warn (never fail — a driver-
+    // selection rule, not a design rejection).
+    const fastGan = checkCompliance(makeResult());
+    const warn = fastGan.findings.find((f) => f.rule === "gate-dvdt-cmti")!;
+    expect(warn).toBeDefined();
+    expect(warn.severity).toBe("warn");
+    expect(warn.detail).toMatch(/V\/ns/);
+    expect(fastGan.passed).toBe(true);
+    // A slow Si superjunction (big Qgd, weak drive defaults) stays around
+    // ~10 V/ns and passes silently.
+    const siDevice = makeDevice({
+      id: "TEST-SI-650",
+      tech: "Si",
+      qgNc: 90,
+      qrrNc: 5000,
+      vgsDriveV: 10,
+      vthV: 3.8,
+    });
+    const slowSi = checkCompliance(
+      makeResult({ devices: [makeDeviceLoss(siDevice)] }),
+    );
+    expect(
+      slowSi.findings.find((f) => f.rule === "gate-dvdt-cmti")!.severity,
+    ).toBe("pass");
+  });
 });
 
 // ---------------------------------------------------------------------------

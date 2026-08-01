@@ -4,12 +4,19 @@ export {
   deviceLoss,
   pickParallelCount,
   rdsOnAtTj,
+  dynamicRonFactor,
+  gateTimings,
+  zvsResolve,
+  qNodeCoulombs,
+  eCapHardJ,
+  vsdV,
   eossAtVoltageJ,
   reverseDropV,
   switchTransitionTimeS,
   gateDriveCurrentA,
   packageDissipationLimitW,
 } from "./device";
+export type { GateTimings, ZvsResult, DeviceLossOptions } from "./device";
 
 export {
   coreLossW,

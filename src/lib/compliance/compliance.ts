@@ -18,6 +18,7 @@ import type {
   TopologyId,
 } from "@/lib/types";
 import { roundSig } from "@/lib/util";
+import { gateTimings } from "@/lib/loss";
 
 /** Everything checkCompliance needs — a DesignResult minus its own outputs. */
 export type ComplianceInput = Omit<DesignResult, "compliance" | "candidates">;
@@ -28,6 +29,13 @@ export const VDS_DERATING_MAX = 0.8;
 export const VDS_DERATING_WARN = 0.72;
 /** Required junction-temperature margin, °C. */
 export const TJ_MARGIN_MIN_C = 15;
+/**
+ * Switch-node dv/dt above which common gate-drive / isolator CMTI ratings
+ * (100–200 V/ns for current isolated drivers) start to bind, V/ns.
+ * §E4/§D10 (U40 partial): flagged as a driver-selection warning, never a
+ * silent model adjustment.
+ */
+export const CMTI_WARN_V_PER_NS = 100;
 
 // ---------------------------------------------------------------------------
 // Creepage / clearance table
@@ -164,6 +172,29 @@ export function checkCompliance(result: ComplianceInput): ComplianceReport {
             ? "warn"
             : "pass",
       detail,
+    });
+  }
+
+  // ---- 1b. Switch-node dv/dt vs driver/isolator CMTI (§E4, U40 partial) ---
+  // Estimated from the §D3 gate-charge-partition voltage-fall time at half
+  // the device's rated current — the same timing model the loss engine uses.
+  for (const d of result.devices) {
+    const stressV = deviceStressV(topo.id, d.role, spec);
+    const t = gateTimings(d.device, 0.5 * d.device.idMaxA, stressV);
+    const dvdtVPerNs = stressV / (t.tVfS * 1e9);
+    findings.push({
+      rule: "gate-dvdt-cmti",
+      severity: dvdtVPerNs > CMTI_WARN_V_PER_NS ? "warn" : "pass",
+      detail:
+        `${d.role}: ${d.device.id} estimated switch-node dv/dt ` +
+        `${roundSig(dvdtVPerNs, 3)} V/ns (${roundSig(stressV, 3)} V in ` +
+        `${roundSig(t.tVfS * 1e9, 3)} ns)` +
+        (dvdtVPerNs > CMTI_WARN_V_PER_NS
+          ? ` exceeds the ${CMTI_WARN_V_PER_NS} V/ns CMTI class of common ` +
+            `isolated drivers — verify driver/isolator CMTI ratings or slow ` +
+            `the gate.`
+          : ` is within the ${CMTI_WARN_V_PER_NS} V/ns CMTI class of common ` +
+            `isolated drivers.`),
     });
   }
 
