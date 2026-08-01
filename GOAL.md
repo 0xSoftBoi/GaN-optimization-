@@ -58,39 +58,39 @@ Transim-style vendor sponsorship.
 - [x] Goal + module contracts documented
 
 ### M1 — Engineering core (pure TS, fully unit-tested)
-- [ ] Component database: ≥40 real GaN/SiC/Si switches with datasheet parameters
-- [ ] Component database: gate drivers, controllers, capacitors, heatsinks
-- [ ] Magnetics database: core materials (Steinmetz), cores, wire table
-- [ ] Loss engine: conduction (tempco), hard/soft switching, Coss, gate, dead-time,
+- [x] Component database: ≥40 real GaN/SiC/Si switches with datasheet parameters
+- [x] Component database: gate drivers, controllers, capacitors, heatsinks
+- [x] Magnetics database: core materials (Steinmetz), cores, wire table
+- [x] Loss engine: conduction (tempco), hard/soft switching, Coss, gate, dead-time,
       iGSE core loss, Dowell AC copper loss, capacitor ESR
-- [ ] Topology engine: buck/boost/sync-buck/interleaved, LLC, PSFB, DAB,
+- [x] Topology engine: buck/boost/sync-buck/interleaved, LLC, PSFB, DAB,
       totem-pole PFC, flyback, forward — selection scoring + operating points
-- [ ] Magnetics design engine: area-product core selection, turns, gap, litz, losses
-- [ ] Thermal engine: Rth network, loss↔Tj iteration, heatsink selection
-- [ ] Control engine: averaged small-signal models, compensator design, digital coeffs
-- [ ] Simulation engine: switching waveforms (PWL state-space), ripple, efficiency curves
-- [ ] Firmware generator: C code for STM32G4 + TI C2000 with generated loop coeffs
-- [ ] Schematic generator: netlist + SVG render + SPICE export
-- [ ] BOM generator: lines, pricing, suppliers, alternates
-- [ ] Compliance engine: derating, creepage/clearance (IEC 62368-1), thermal margins
-- [ ] PCB layout guidance: power-loop geometry, stackup, placement floorplan
-- [ ] Copilot NL parser: "5kW bidirectional 800V→48V" → DesignSpec
-- [ ] Optimizer: topology × device × fsw sweep, Pareto (efficiency/cost/density),
+- [x] Magnetics design engine: area-product core selection, turns, gap, litz, losses
+- [x] Thermal engine: Rth network, loss↔Tj iteration, heatsink selection
+- [x] Control engine: averaged small-signal models, compensator design, digital coeffs
+- [x] Simulation engine: switching waveforms (PWL state-space), ripple, efficiency curves
+- [x] Firmware generator: C code for STM32G4 + TI C2000 with generated loop coeffs
+- [x] Schematic generator: netlist + SVG render + SPICE export
+- [x] BOM generator: lines, pricing, suppliers, alternates
+- [x] Compliance engine: derating, creepage/clearance (IEC 62368-1), thermal margins
+- [x] PCB layout guidance: power-loop geometry, stackup, placement floorplan
+- [x] Copilot NL parser: "5kW bidirectional 800V→48V" → DesignSpec
+- [x] Optimizer: topology × device × fsw sweep, Pareto (efficiency/cost/density),
       recommended design composition
 
 ### M2 — Platform
-- [ ] API: /api/design, /api/copilot, /api/components, /api/optimize, /api/firmware, /api/spice
-- [ ] UI: landing + copilot prompt
-- [ ] UI: design workbench (loss waterfall, efficiency curves, thermal, magnetics,
+- [x] API: /api/design, /api/copilot, /api/components, /api/optimize, /api/firmware, /api/spice
+- [x] UI: landing + copilot prompt
+- [x] UI: design workbench (loss waterfall, efficiency curves, thermal, magnetics,
       BOM, schematic, firmware, compliance)
-- [ ] UI: component terminal (filter/sort/compare)
-- [ ] UI: Pareto explorer
-- [ ] Docs page: methodology + model assumptions
+- [x] UI: component terminal (filter/sort/compare)
+- [x] UI: Pareto explorer
+- [x] Docs page: methodology + model assumptions
 
 ### M3 — Quality & deployment
-- [ ] Full test suite green (`npm test`), typecheck green, `next build` green
-- [ ] End-to-end integration test: "Design a 5kW bidirectional converter" → complete result
-- [ ] CI on GitHub Actions
+- [x] Full test suite green (`npm test`), typecheck green, `next build` green
+- [x] End-to-end integration test: "Design a 5kW bidirectional converter" → complete result
+- [x] CI on GitHub Actions
 - [ ] Deployed (Vercel) and reachable
 
 ### M4 — Sell-ready depth + trust loop (v2, loop iterations)
@@ -130,3 +130,4 @@ ahead of the calibration set.
 ## Iteration log
 
 - 2026-08-01 · it0 · Scaffold + goal established.
+- 2026-08-01 · it1 · M1+M2 complete: 16 engine modules, optimizer, 6 API routes, 5 UI pages; MASTERPLAN.md adopted; 484 tests green, build green.
