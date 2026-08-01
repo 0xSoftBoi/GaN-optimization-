@@ -103,6 +103,10 @@ Transim-style vendor sponsorship.
       workarounds or deploys into unrelated existing projects.
 
 ### M4 — Sell-ready depth + trust loop (v2, loop iterations)
+- [ ] Persona UX (user-requested, priority): energy-economics engine
+      (efficiency → $/yr, TCO, payback, CO₂ at fleet scale with $/MWh and load
+      profiles) + executive/trader view with plain-language KPIs alongside the
+      engineer workbench; glossary tooltips; professional formatting polish
 - [ ] ORv3 PSU path first-class: LLC + totem-pole PFC at 3–18.3 kW with 97.5 %+
       peak-efficiency designs; 48/54V→12V IBC path
 - [ ] Calibration harness: reproduce ≥3 published measured reference designs
