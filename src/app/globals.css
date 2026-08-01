@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --ink-950: #070a0f;
+  --ink-900: #0a0e14;
+  --ink-800: #11161f;
+  --ink-700: #1a2230;
+  --ink-600: #243044;
+  --volt: #22d3ee;
+  --amber: #f59e0b;
+  --rose: #fb7185;
+  --lime: #a3e635;
+}
+
+html {
+  color-scheme: dark;
+}
+
+::selection {
+  background: rgba(34, 211, 238, 0.25);
+}
+
+.panel {
+  @apply rounded-lg border border-ink-600 bg-ink-800 p-4;
+}
+
+.panel-title {
+  @apply mb-3 text-xs font-semibold uppercase tracking-widest text-slate-500;
+}
+
+.stat {
+  @apply rounded-md border border-ink-600 bg-ink-700/50 px-3 py-2;
+}
+
+.stat-label {
+  @apply text-[10px] uppercase tracking-wider text-slate-500;
+}
+
+.stat-value {
+  @apply text-lg font-bold text-volt;
+}
+
+.btn {
+  @apply inline-flex items-center gap-2 rounded-md border border-volt/40 bg-volt/10 px-4 py-2 text-sm font-semibold text-volt transition-colors hover:bg-volt/20 disabled:cursor-not-allowed disabled:opacity-40;
+}
+
+.input {
+  @apply w-full rounded-md border border-ink-600 bg-ink-900 px-3 py-2 text-sm text-slate-200 outline-none transition-colors placeholder:text-slate-600 focus:border-volt/60;
+}
+
+.table-terminal {
+  @apply w-full border-collapse text-xs;
+}
+
+.table-terminal th {
+  @apply sticky top-0 border-b border-ink-600 bg-ink-800 px-2 py-2 text-left font-semibold uppercase tracking-wider text-slate-500;
+}
+
+.table-terminal td {
+  @apply border-b border-ink-700 px-2 py-1.5 text-slate-300;
+}
+
+.table-terminal tr:hover td {
+  @apply bg-ink-700/40;
+}
