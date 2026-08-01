@@ -91,7 +91,16 @@ Transim-style vendor sponsorship.
 - [x] Full test suite green (`npm test`), typecheck green, `next build` green
 - [x] End-to-end integration test: "Design a 5kW bidirectional converter" → complete result
 - [x] CI on GitHub Actions
-- [ ] Deployed (Vercel) and reachable
+- [ ] Deployed (Vercel) and reachable — BLOCKED on user action: the connected
+      Vercel account (team `mongolraiders-projects`) returns 403 "You don't
+      have permission to create a project", and no `voltforge` project exists.
+      Unblock: create an empty Vercel project named `voltforge` on that team
+      (or reconnect the Vercel connector with project-creation rights), or —
+      simplest — import the public GitHub repo `0xSoftBoi/GaN-optimization-`
+      (branch `claude/ai-power-delivery-platform-ghcmyl`) via Vercel's Git
+      integration in the dashboard. Loop iterations: retry only by checking
+      whether the project now exists; do not attempt tarball/installCommand
+      workarounds or deploys into unrelated existing projects.
 
 ### M4 — Sell-ready depth + trust loop (v2, loop iterations)
 - [ ] ORv3 PSU path first-class: LLC + totem-pole PFC at 3–18.3 kW with 97.5 %+
