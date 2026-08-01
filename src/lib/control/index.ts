@@ -1,0 +1,1 @@
+export { designCompensator } from "./compensator";
