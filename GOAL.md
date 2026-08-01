@@ -143,4 +143,5 @@ ahead of the calibration set.
 ## Iteration log
 
 - 2026-08-01 · it0 · Scaffold + goal established.
+- 2026-08-01 · it2 · Device-physics core (TECHPLAN U1-U6): nonlinear Coss (V*Qoss), gate-charge-partition timing, power-law Rds(Tj)+k_dyn, Coss-limited Eoff, continuous ZVS fraction, anchor parts EPC2218/LMG3522/C3M0075120K; 551 tests green; adversarially verified.
 - 2026-08-01 · it1 · M1+M2 complete: 16 engine modules, optimizer, 6 API routes, 5 UI pages; MASTERPLAN.md adopted; 484 tests green, build green.

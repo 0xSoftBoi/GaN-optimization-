@@ -197,6 +197,26 @@ fully checked.
 
 ---
 
+## 2.1 it2 carry-forward notes (from adversarial review, all minor)
+
+- Dead-time slew credit is applied on both edges even for hard-switched ops —
+  condition on resolved zvsFraction when U25 per-edge data lands (it4).
+- Partial-ZVS turn-on overlap steps on at dV_rem > 0.2·V (follows §D9 verbatim)
+  — replace with a ramp for continuous optimizer gradients (it4, §D10 intent).
+- Qrr under partial ZVS scaled linearly by dV_rem/V — heuristic, docs silent;
+  threshold behavior is more physical (revisit with U25).
+- Si-SJ Coss power-law fit is shape-wrong below the ~50 V knee — needs a
+  tabulated CoolMOS anchor (U9 completion).
+- Family-default SiC r(150)=1.625 synthesized from the linear tempco exceeds
+  §D1's 1.25–1.5 band (~10–20% hot-conduction pessimism on non-anchor SiC
+  parts; C3M0075120K anchor is in-band) — tighten in U9.
+- t_vr uses Qgd·Rg_off/(Vpl − Vlo), the Vlo-consistent generalization of
+  §D3's Qgd·Rg_off/Vpl — record in PHYSICS.md §D3.
+- DAB 800V/48V light-load (10%) efficiency now 77% (was 95%) from the
+  partial-ZVS residual at fixed 40 ns dead time: direction physical, magnitude
+  aggressive — it4's per-edge ZVS + dead-time optimization should recover the
+  realistic curve (real designs burst-mode/extend phase shift at light load).
+
 ## 3. Definition of physics-credible (sign-off checklist)
 
 A senior power engineer signs off when every line holds:
