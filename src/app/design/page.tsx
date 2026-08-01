@@ -74,12 +74,20 @@ type State =
   | { phase: "error"; message: string }
   | { phase: "done"; result: DesignResult; parse?: CopilotParse };
 
+type ExportKind = "spice" | "kicad" | "ltspice";
+
+const EXPORT_FILE: Record<ExportKind, { ext: string; label: string }> = {
+  spice: { ext: "cir", label: "↓ Export SPICE" },
+  kicad: { ext: "kicad_sch", label: "↓ KiCad" },
+  ltspice: { ext: "net", label: "↓ LTspice" },
+};
+
 export default function DesignWorkbench() {
   const [state, setState] = useState<State>({ phase: "loading" });
   const [stage, setStage] = useState(0);
   const [runId, setRunId] = useState(0);
-  const [spiceBusy, setSpiceBusy] = useState(false);
-  const [spiceError, setSpiceError] = useState<string | null>(null);
+  const [exportBusy, setExportBusy] = useState<ExportKind | null>(null);
+  const [exportError, setExportError] = useState<string | null>(null);
   const requestRef = useRef<WorkbenchRequest | null>(null);
 
   // Staged progress: advance while loading, hold on the last stage.
@@ -117,28 +125,40 @@ export default function DesignWorkbench() {
 
   const retry = useCallback(() => setRunId((r) => r + 1), []);
 
-  const exportSpice = useCallback(async () => {
-    if (state.phase !== "done") return;
-    setSpiceBusy(true);
-    setSpiceError(null);
-    try {
-      const res = await fetch("/api/spice", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ spec: state.result.spec }),
-      });
-      if (!res.ok) {
-        const o = (await res.json().catch(() => null)) as { error?: string } | null;
-        throw new Error(o?.error ?? `HTTP ${res.status}`);
+  const exportFile = useCallback(
+    async (kind: ExportKind) => {
+      if (state.phase !== "done") return;
+      setExportBusy(kind);
+      setExportError(null);
+      try {
+        const url = kind === "spice" ? "/api/spice" : "/api/export";
+        const body =
+          kind === "spice"
+            ? { spec: state.result.spec }
+            : { spec: state.result.spec, format: kind };
+        const res = await fetch(url, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify(body),
+        });
+        if (!res.ok) {
+          const o = (await res.json().catch(() => null)) as { error?: string } | null;
+          throw new Error(o?.error ?? `HTTP ${res.status}`);
+        }
+        const text = await res.text();
+        downloadBlob(
+          text,
+          `voltforge-${state.result.topology.id}.${EXPORT_FILE[kind].ext}`,
+          "text/plain",
+        );
+      } catch (err) {
+        setExportError(err instanceof Error ? err.message : String(err));
+      } finally {
+        setExportBusy(null);
       }
-      const text = await res.text();
-      downloadBlob(text, `voltforge-${state.result.topology.id}.cir`, "text/plain");
-    } catch (err) {
-      setSpiceError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setSpiceBusy(false);
-    }
-  }, [state]);
+    },
+    [state],
+  );
 
   if (state.phase === "loading") {
     return (
@@ -174,10 +194,17 @@ export default function DesignWorkbench() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {spiceError && <span className="text-xs text-rose-400">{spiceError}</span>}
-          <button className="btn" onClick={exportSpice} disabled={spiceBusy}>
-            {spiceBusy ? "Exporting…" : "↓ Export SPICE"}
-          </button>
+          {exportError && <span className="text-xs text-rose-400">{exportError}</span>}
+          {(Object.keys(EXPORT_FILE) as ExportKind[]).map((kind) => (
+            <button
+              key={kind}
+              className="btn"
+              onClick={() => exportFile(kind)}
+              disabled={exportBusy !== null}
+            >
+              {exportBusy === kind ? "Exporting…" : EXPORT_FILE[kind].label}
+            </button>
+          ))}
         </div>
       </div>
 

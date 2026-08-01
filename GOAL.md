@@ -100,7 +100,7 @@ Transim-style vendor sponsorship.
       (TI PMP23126, Infineon 3 kW class, Navitas Ruby-class) within ±0.5 %;
       publish comparison in /docs — gate for public accuracy claims
 - [ ] ngspice round-trip validation of generated netlists in CI
-- [ ] KiCad s-expression schematic export; LTspice netlist export
+- [x] KiCad s-expression schematic export; LTspice netlist export
 - [ ] BOM: live pricing/availability fields + region-aware second sourcing
 - [ ] Multi-objective optimizer honoring density (W/in³) + cost ceilings
 - [ ] Device DB ≥80 parts with provenance flags (vendor-claimed vs characterized)
