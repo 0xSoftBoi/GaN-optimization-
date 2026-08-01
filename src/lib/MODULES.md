@@ -38,10 +38,10 @@ Required public exports (exact names/signatures; extra exports welcome):
   via loss module or internal, Dowell copper loss, temp rise, window check)
 
 ## thermal (`src/lib/thermal/`)
-- `solveThermal(losses: LossBreakdown, spec: DesignSpec): ThermalReport`
-  (per-device Tj from Rth chain, heatsink selection from HEATSINKS when needed,
-  iterate loss↔Tj via callback:)
-- `iterateThermal(spec: DesignSpec, evalLossesAtTj: (tjC: number) => LossBreakdown): { losses: LossBreakdown; thermal: ThermalReport }`
+- `solveThermal(losses: LossBreakdown, spec: DesignSpec, heatsinks?: Heatsink[]): ThermalReport`
+  (per-device Tj from Rth chain; heatsink selection from the injected catalog —
+  callers pass HEATSINKS from data; module keeps a small internal fallback list)
+- `iterateThermal(spec: DesignSpec, evalLossesAtTj: (tjC: number) => LossBreakdown, heatsinks?: Heatsink[]): { losses: LossBreakdown; thermal: ThermalReport }`
 
 ## control (`src/lib/control/`)
 - `designCompensator(id: TopologyId, spec: DesignSpec, fswHz: number, lUh: number, cOutUf: number): CompensatorDesign`
