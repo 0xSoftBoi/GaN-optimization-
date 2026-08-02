@@ -98,6 +98,13 @@ describe("formatting", () => {
     expect(fmtPct(97.812)).toBe("97.8%");
   });
 
+  it("fmtUsd groups thousands and keeps cents (BOM-line precision)", () => {
+    expect(fmtUsd(12345.678)).toBe("$12,345.68");
+    expect(fmtUsd(1234567.8)).toBe("$1,234,567.80");
+    expect(fmtUsd(-4200)).toBe("-$4,200.00");
+    expect(fmtUsd(0)).toBe("$0.00");
+  });
+
   it("fmtPowerDensity steps to kW/L above 1000 W/L", () => {
     expect(fmtPowerDensity(450)).toBe("450 W/L");
     expect(fmtPowerDensity(2600)).toBe("2.6 kW/L");

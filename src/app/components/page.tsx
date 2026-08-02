@@ -18,6 +18,7 @@ import type {
 } from "@/lib/types";
 import CompareTray from "@/components/explore/CompareTray";
 import TechBadge from "@/components/explore/TechBadge";
+import { Term } from "@/components/ui/term";
 import { fmtNum, fmtUsd } from "@/components/explore/format";
 import {
   filterSwitches,
@@ -29,6 +30,28 @@ import {
   type SortDir,
   type SwitchSortKey,
 } from "@/components/explore/switch-logic";
+
+const PRICE_LABEL = "$ @ 1k qty";
+
+/** Fixed-height pulsing placeholder rows so the table frame doesn't collapse while loading. */
+function SkeletonRows({ cols, rows = 8 }: { cols: number; rows?: number }) {
+  return (
+    <>
+      {Array.from({ length: rows }).map((_, r) => (
+        <tr key={r} aria-hidden>
+          {Array.from({ length: cols }).map((_, c) => (
+            <td key={c}>
+              <div
+                className="h-3 animate-pulse rounded bg-ink-700/70"
+                style={{ width: `${55 + ((r * 7 + c * 13) % 40)}%` }}
+              />
+            </td>
+          ))}
+        </tr>
+      ))}
+    </>
+  );
+}
 
 const KINDS = [
   { kind: "switch", label: "Switches" },
@@ -45,35 +68,88 @@ const TECH_OPTIONS: (SwitchTech | "all")[] = ["all", "GaN", "SiC", "Si"];
 interface SwitchColumn {
   key: SwitchSortKey;
   label: string;
+  header?: React.ReactNode;
   render: (d: SwitchDevice) => React.ReactNode;
   align?: "right";
+  /** Pins this column to the left edge of the horizontally-scrolling table. */
+  sticky?: boolean;
 }
 
 const SWITCH_COLUMNS: SwitchColumn[] = [
-  { key: "id", label: "Part", render: (d) => <span className="text-slate-200">{d.id}</span> },
+  {
+    key: "id",
+    label: "Part",
+    sticky: true,
+    render: (d) => <span className="text-slate-200">{d.id}</span>,
+  },
   { key: "mfr", label: "Mfr", render: (d) => d.mfr },
   { key: "tech", label: "Tech", render: (d) => <TechBadge tech={d.tech} /> },
   { key: "vdsMaxV", label: "Vds (V)", render: (d) => fmtNum(d.vdsMaxV), align: "right" },
   { key: "idMaxA", label: "Id (A)", render: (d) => fmtNum(d.idMaxA), align: "right" },
-  { key: "rdsOnMohm25", label: "Rds (mΩ)", render: (d) => fmtNum(d.rdsOnMohm25), align: "right" },
-  { key: "qgNc", label: "Qg (nC)", render: (d) => fmtNum(d.qgNc), align: "right" },
+  {
+    key: "rdsOnMohm25",
+    label: "Rds (mΩ)",
+    header: (
+      <>
+        <Term k="rds-on">Rds</Term> (mΩ)
+      </>
+    ),
+    render: (d) => fmtNum(d.rdsOnMohm25),
+    align: "right",
+  },
+  {
+    key: "qgNc",
+    label: "Qg (nC)",
+    header: (
+      <>
+        <Term k="qg">Qg</Term> (nC)
+      </>
+    ),
+    render: (d) => fmtNum(d.qgNc),
+    align: "right",
+  },
   { key: "qossNc", label: "Qoss (nC)", render: (d) => fmtNum(d.qossNc), align: "right" },
-  { key: "qrrNc", label: "Qrr (nC)", render: (d) => fmtNum(d.qrrNc), align: "right" },
-  { key: "fom", label: "FoM Rds·Qg", render: (d) => fmtNum(fomMohmNc(d)), align: "right" },
-  { key: "priceUsd1k", label: "$/1k", render: (d) => fmtUsd(d.priceUsd1k), align: "right" },
+  {
+    key: "qrrNc",
+    label: "Qrr (nC)",
+    header: (
+      <>
+        <Term k="qrr">Qrr</Term> (nC)
+      </>
+    ),
+    render: (d) => fmtNum(d.qrrNc),
+    align: "right",
+  },
+  {
+    key: "fom",
+    label: "FoM Rds·Qg",
+    header: (
+      <>
+        <Term k="fom">FoM</Term> Rds·Qg
+      </>
+    ),
+    render: (d) => fmtNum(fomMohmNc(d)),
+    align: "right",
+  },
+  { key: "priceUsd1k", label: PRICE_LABEL, render: (d) => fmtUsd(d.priceUsd1k), align: "right" },
 ];
 
 interface GenericColumn<T> {
   label: string;
+  header?: React.ReactNode;
   render: (row: T) => React.ReactNode;
+  /** Pins this column to the left edge of the horizontally-scrolling table. */
+  sticky?: boolean;
 }
+
+const PART_COL = { label: "Part", sticky: true } as const;
 
 /** Column sets for the non-switch catalogs. */
 function genericColumns(kind: Kind): GenericColumn<unknown>[] {
   switch (kind) {
     case "driver": {
       const cols: GenericColumn<GateDriver>[] = [
-        { label: "Part", render: (d) => <span className="text-slate-200">{d.id}</span> },
+        { ...PART_COL, render: (d) => <span className="text-slate-200">{d.id}</span> },
         { label: "Mfr", render: (d) => d.mfr },
         { label: "Ch", render: (d) => d.channels },
         { label: "Isolated", render: (d) => (d.isolated ? "yes" : "no") },
@@ -81,42 +157,50 @@ function genericColumns(kind: Kind): GenericColumn<unknown>[] {
           label: "Src/Sink (A)",
           render: (d) => `${fmtNum(d.peakSourceA)} / ${fmtNum(d.peakSinkA)}`,
         },
-        { label: "CMTI (V/ns)", render: (d) => fmtNum(d.cmtiVPerNs) },
+        {
+          label: "CMTI (V/ns)",
+          header: (
+            <>
+              <Term k="cmti">CMTI</Term> (V/ns)
+            </>
+          ),
+          render: (d) => fmtNum(d.cmtiVPerNs),
+        },
         { label: "tpd (ns)", render: (d) => fmtNum(d.propDelayNs) },
-        { label: "$/1k", render: (d) => fmtUsd(d.priceUsd1k) },
+        { label: PRICE_LABEL, render: (d) => fmtUsd(d.priceUsd1k) },
         { label: "Suppliers", render: (d) => d.suppliers.join(", ") },
       ];
       return cols as GenericColumn<unknown>[];
     }
     case "controller": {
       const cols: GenericColumn<ControllerPart>[] = [
-        { label: "Part", render: (d) => <span className="text-slate-200">{d.id}</span> },
+        { ...PART_COL, render: (d) => <span className="text-slate-200">{d.id}</span> },
         { label: "Mfr", render: (d) => d.mfr },
         { label: "Family", render: (d) => d.family },
         { label: "Core (MHz)", render: (d) => fmtNum(d.coreMhz) },
         { label: "PWM res (ps)", render: (d) => fmtNum(d.pwmResolutionPs) },
         { label: "ADC (bits)", render: (d) => d.adcBits },
-        { label: "$/1k", render: (d) => fmtUsd(d.priceUsd1k) },
+        { label: PRICE_LABEL, render: (d) => fmtUsd(d.priceUsd1k) },
         { label: "Suppliers", render: (d) => d.suppliers.join(", ") },
       ];
       return cols as GenericColumn<unknown>[];
     }
     case "capacitor": {
       const cols: GenericColumn<CapacitorPart>[] = [
-        { label: "Part", render: (d) => <span className="text-slate-200">{d.id}</span> },
+        { ...PART_COL, render: (d) => <span className="text-slate-200">{d.id}</span> },
         { label: "Mfr", render: (d) => d.mfr },
         { label: "Dielectric", render: (d) => d.dielectric },
         { label: "C (µF)", render: (d) => fmtNum(d.capUf) },
         { label: "V", render: (d) => fmtNum(d.voltageV) },
         { label: "ESR (mΩ)", render: (d) => fmtNum(d.esrMohm) },
         { label: "Irms (A)", render: (d) => fmtNum(d.iRmsA) },
-        { label: "$/1k", render: (d) => fmtUsd(d.priceUsd1k) },
+        { label: PRICE_LABEL, render: (d) => fmtUsd(d.priceUsd1k) },
       ];
       return cols as GenericColumn<unknown>[];
     }
     case "heatsink": {
       const cols: GenericColumn<Heatsink>[] = [
-        { label: "Part", render: (d) => <span className="text-slate-200">{d.id}</span> },
+        { ...PART_COL, render: (d) => <span className="text-slate-200">{d.id}</span> },
         { label: "Mfr", render: (d) => d.mfr },
         { label: "Rth s-a nat (°C/W)", render: (d) => fmtNum(d.rthSaCPerWNatural) },
         { label: "Rth s-a 400LFM", render: (d) => fmtNum(d.rthSaCPerWForced) },
@@ -128,7 +212,7 @@ function genericColumns(kind: Kind): GenericColumn<unknown>[] {
     }
     case "core": {
       const cols: GenericColumn<CoreShape>[] = [
-        { label: "Core", render: (d) => <span className="text-slate-200">{d.id}</span> },
+        { label: "Core", sticky: true, render: (d) => <span className="text-slate-200">{d.id}</span> },
         { label: "Mfr", render: (d) => d.mfr },
         { label: "Material", render: (d) => d.materialId },
         { label: "Ae (mm²)", render: (d) => fmtNum(d.aeMm2) },
@@ -240,12 +324,41 @@ export default function ComponentTerminalPage() {
         ))}
       </div>
 
-      {loading && <div className="panel text-sm text-slate-500">loading {kind} catalog…</div>}
+      {loading && (
+        <div className="panel overflow-x-auto p-0" aria-busy="true" aria-label={`loading ${kind} catalog`}>
+          <table className={`table-terminal ${kind === "switch" ? "min-w-[900px]" : "min-w-[700px]"}`}>
+            <thead>
+              <tr>
+                {kind === "switch" ? (
+                  <>
+                    <th className="w-8">Cmp</th>
+                    {SWITCH_COLUMNS.map((c) => (
+                      <th key={c.key} className={c.align === "right" ? "text-right" : ""}>
+                        {c.header ?? c.label}
+                      </th>
+                    ))}
+                    <th>Suppliers</th>
+                  </>
+                ) : (
+                  cols.map((c) => <th key={c.label}>{c.header ?? c.label}</th>)
+                )}
+              </tr>
+            </thead>
+            <tbody>
+              <SkeletonRows cols={kind === "switch" ? SWITCH_COLUMNS.length + 2 : Math.max(cols.length, 1)} />
+            </tbody>
+          </table>
+        </div>
+      )}
       {error && (
         <div className="panel border-[#fb7185]/40 text-sm text-[#fb7185]">
-          failed to load: {error}{" "}
-          <button type="button" className="underline" onClick={() => void load(kind)}>
-            retry
+          The component catalog could not be loaded.
+          <details className="mt-1">
+            <summary className="cursor-pointer text-xs text-[#fb7185]/80">technical details</summary>
+            <p className="mt-1 text-xs text-[#fb7185]/70">{error}</p>
+          </details>
+          <button type="button" className="btn mt-2 px-3 py-1 text-xs" onClick={() => void load(kind)}>
+            Retry
           </button>
         </div>
       )}
@@ -303,10 +416,14 @@ export default function ComponentTerminalPage() {
                 onChange={(e) => setVdsMax(e.target.value)}
               />
             </label>
-            <div className="pb-2 text-xs text-slate-500">
+            <div className="pb-2 text-xs text-slate-400">
               {visibleSwitches.length} / {switches.length} parts
             </div>
           </div>
+
+          <p className="text-[11px] text-slate-400">
+            Select up to {COMPARE_MAX} parts (checkbox column) to compare side by side.
+          </p>
 
           {compared.length > 0 && (
             <CompareTray
@@ -316,12 +433,12 @@ export default function ComponentTerminalPage() {
             />
           )}
 
-          <div className="panel overflow-x-auto p-0">
+          <div className="panel relative overflow-x-auto p-0">
             <table className="table-terminal min-w-[900px]">
               <thead>
                 <tr>
-                  <th className="w-8">
-                    <span title={`compare up to ${COMPARE_MAX}`}>vs</span>
+                  <th className="sticky left-0 z-20 w-8 bg-ink-800">
+                    <span title={`compare up to ${COMPARE_MAX}`}>Cmp</span>
                   </th>
                   {SWITCH_COLUMNS.map((c) => (
                     <th
@@ -333,18 +450,23 @@ export default function ComponentTerminalPage() {
                             : "descending"
                           : undefined
                       }
-                      className={c.align === "right" ? "text-right" : ""}
+                      className={`${c.align === "right" ? "text-right" : ""} ${
+                        c.sticky ? "sticky left-8 z-20 bg-ink-800" : ""
+                      }`}
                     >
                       <button
                         type="button"
                         className="inline-flex items-center gap-1 uppercase tracking-wider hover:text-volt"
                         onClick={() => setSort((s) => nextSort(s, c.key))}
                       >
-                        {c.label}
+                        {c.header ?? c.label}
                         {sort.key === c.key && (
                           <span className="text-volt">{sort.dir === "asc" ? "▲" : "▼"}</span>
                         )}
                       </button>
+                      {c.key === "fom" && (
+                        <span className="ml-1 normal-case text-slate-500">(lower = better)</span>
+                      )}
                     </th>
                   ))}
                   <th>Suppliers</th>
@@ -353,49 +475,61 @@ export default function ComponentTerminalPage() {
               <tbody>
                 {visibleSwitches.map((d) => (
                   <tr key={d.id}>
-                    <td>
+                    <td className="sticky left-0 z-10 bg-ink-800">
                       <input
                         type="checkbox"
                         className="accent-cyan-400"
                         checked={compareIds.includes(d.id)}
                         disabled={!compareIds.includes(d.id) && compareIds.length >= COMPARE_MAX}
                         onChange={() => setCompareIds((ids) => toggleCompare(ids, d.id))}
-                        aria-label={`compare ${d.id}`}
+                        aria-label={
+                          compareIds.length >= COMPARE_MAX && !compareIds.includes(d.id)
+                            ? `compare ${d.id} (disabled — remove another part first, limit ${COMPARE_MAX})`
+                            : `compare ${d.id}`
+                        }
                       />
                     </td>
                     {SWITCH_COLUMNS.map((c) => (
                       <td
                         key={c.key}
-                        className={c.align === "right" ? "text-right tabular-nums" : ""}
+                        className={`${c.align === "right" ? "text-right tabular-nums" : ""} ${
+                          c.sticky ? "sticky left-8 z-10 bg-ink-800" : ""
+                        }`}
                       >
                         {c.render(d)}
                       </td>
                     ))}
-                    <td className="max-w-40 truncate text-slate-500" title={d.suppliers.join(", ")}>
+                    <td className="max-w-40 truncate text-slate-400" title={d.suppliers.join(", ")}>
                       {d.suppliers.join(", ")}
                     </td>
                   </tr>
                 ))}
                 {visibleSwitches.length === 0 && (
                   <tr>
-                    <td colSpan={SWITCH_COLUMNS.length + 2} className="py-6 text-center text-slate-500">
+                    <td colSpan={SWITCH_COLUMNS.length + 2} className="py-6 text-center text-slate-400">
                       no parts match the current filters
                     </td>
                   </tr>
                 )}
               </tbody>
             </table>
+            <div
+              aria-hidden
+              className="pointer-events-none absolute right-0 top-0 h-full w-6 bg-gradient-to-l from-ink-800 to-transparent"
+            />
           </div>
         </>
       )}
 
       {!loading && !error && kind !== "switch" && (
-        <div className="panel overflow-x-auto p-0">
+        <div className="panel relative overflow-x-auto p-0">
           <table className="table-terminal min-w-[700px]">
             <thead>
               <tr>
                 {cols.map((c) => (
-                  <th key={c.label}>{c.label}</th>
+                  <th key={c.label} className={c.sticky ? "sticky left-0 z-20 bg-ink-800" : ""}>
+                    {c.header ?? c.label}
+                  </th>
                 ))}
               </tr>
             </thead>
@@ -403,19 +537,25 @@ export default function ComponentTerminalPage() {
               {rows.map((row, i) => (
                 <tr key={i}>
                   {cols.map((c) => (
-                    <td key={c.label}>{c.render(row)}</td>
+                    <td key={c.label} className={c.sticky ? "sticky left-0 z-10 bg-ink-800" : ""}>
+                      {c.render(row)}
+                    </td>
                   ))}
                 </tr>
               ))}
               {rows.length === 0 && (
                 <tr>
-                  <td colSpan={Math.max(cols.length, 1)} className="py-6 text-center text-slate-500">
+                  <td colSpan={Math.max(cols.length, 1)} className="py-6 text-center text-slate-400">
                     empty catalog
                   </td>
                 </tr>
               )}
             </tbody>
           </table>
+          <div
+            aria-hidden
+            className="pointer-events-none absolute right-0 top-0 h-full w-6 bg-gradient-to-l from-ink-800 to-transparent"
+          />
         </div>
       )}
     </div>

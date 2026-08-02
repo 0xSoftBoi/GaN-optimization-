@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import type { DesignCandidateSummary } from "@/lib/types";
 import {
   DEFAULT_SPEC,
+  QUICK_LENS_DEFAULTS,
+  candidateFleetEconomics,
   candidateKey,
+  cheapestFeasible,
   formStateFromSpec,
   groupCandidates,
   linScale,
@@ -152,6 +155,55 @@ describe("radiusForDensity", () => {
     const r = radiusForDensity(2000, 2000, 2000);
     expect(r).toBeGreaterThan(3.5);
     expect(r).toBeLessThan(9);
+  });
+});
+
+describe("candidateFleetEconomics", () => {
+  const poutW = 5000;
+
+  it("a candidate at the baseline efficiency has ~zero savings", () => {
+    const c = cand({ efficiencyPct: QUICK_LENS_DEFAULTS.baselineEfficiencyPct, bomCostUsd: 500 });
+    const e = candidateFleetEconomics(c, poutW, 1);
+    expect(e.fleetAnnualSavingsVsBaselineUsd).toBeCloseTo(0, 6);
+  });
+
+  it("higher efficiency than baseline saves money; lower costs money", () => {
+    const better = candidateFleetEconomics(cand({ efficiencyPct: 98 }), poutW, 1);
+    const worse = candidateFleetEconomics(cand({ efficiencyPct: 94 }), poutW, 1);
+    expect(better.fleetAnnualSavingsVsBaselineUsd).toBeGreaterThan(0);
+    expect(worse.fleetAnnualSavingsVsBaselineUsd).toBeLessThan(0);
+  });
+
+  it("fleet figures scale linearly with fleetUnits", () => {
+    const one = candidateFleetEconomics(cand({ efficiencyPct: 97, bomCostUsd: 200 }), poutW, 1);
+    const fifty = candidateFleetEconomics(cand({ efficiencyPct: 97, bomCostUsd: 200 }), poutW, 50);
+    expect(fifty.fleetBomTotalUsd).toBeCloseTo(50 * one.fleetBomTotalUsd, 6);
+    expect(fifty.fleetAnnualLossCostUsd).toBeCloseTo(50 * one.fleetAnnualLossCostUsd, 6);
+    expect(fifty.fleetAnnualSavingsVsBaselineUsd).toBeCloseTo(
+      50 * one.fleetAnnualSavingsVsBaselineUsd,
+      6,
+    );
+  });
+
+  it("loss cost is always non-negative (loss can never exceed rated power at >0% efficiency)", () => {
+    const e = candidateFleetEconomics(cand({ efficiencyPct: 80 }), poutW, 3);
+    expect(e.unitAnnualLossCostUsd).toBeGreaterThan(0);
+    expect(e.fleetAnnualLossCostUsd).toBeCloseTo(3 * e.unitAnnualLossCostUsd, 6);
+  });
+});
+
+describe("cheapestFeasible", () => {
+  it("picks the lowest BOM cost among feasible candidates, ignoring infeasible ones", () => {
+    const cands = [
+      cand({ deviceId: "a", bomCostUsd: 300, feasible: true }),
+      cand({ deviceId: "b", bomCostUsd: 50, feasible: false }), // cheaper but infeasible
+      cand({ deviceId: "c", bomCostUsd: 120, feasible: true }),
+    ];
+    expect(cheapestFeasible(cands)?.deviceId).toBe("c");
+  });
+
+  it("returns null when nothing is feasible", () => {
+    expect(cheapestFeasible([cand({ feasible: false })])).toBeNull();
   });
 });
 

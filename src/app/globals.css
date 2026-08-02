@@ -35,7 +35,7 @@ html {
 }
 
 .stat-label {
-  @apply text-[10px] uppercase tracking-wider text-slate-500;
+  @apply text-[11px] uppercase tracking-wider text-slate-400;
 }
 
 .stat-value {
@@ -55,7 +55,7 @@ html {
 }
 
 .table-terminal th {
-  @apply sticky top-0 border-b border-ink-600 bg-ink-800 px-2 py-2 text-left font-semibold uppercase tracking-wider text-slate-500;
+  @apply sticky top-0 border-b border-ink-600 bg-ink-800 px-2 py-2 text-left font-semibold uppercase tracking-wider text-slate-400;
 }
 
 .table-terminal td {

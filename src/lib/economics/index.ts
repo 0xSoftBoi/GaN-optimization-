@@ -7,6 +7,7 @@ export {
 export type {
   EconomicsAssumptions,
   EnergyEconomics,
+  LoadProfileBreakdownPoint,
   LoadProfilePoint,
   PriceSensitivityPoint,
 } from "./economics";

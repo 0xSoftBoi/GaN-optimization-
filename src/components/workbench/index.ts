@@ -6,6 +6,7 @@ export { LossWaterfall, EfficiencyChart } from "./charts";
 export {
   BomPanel,
   CompliancePanel,
+  ComplianceVerdictCard,
   DeviceTable,
   ErrorPanel,
   FirmwarePanel,
@@ -20,3 +21,12 @@ export {
   downloadBlob,
 } from "./panels";
 export { SpecForm } from "./SpecForm";
+export { ImpactPanel } from "./ImpactPanel";
+export {
+  buildSummaryMarkdown,
+  complianceConsequence,
+  complianceVerdict,
+  friendlyErrorMessage,
+  impactSentence,
+  type ComplianceSummary,
+} from "./summary";

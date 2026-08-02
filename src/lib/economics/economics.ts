@@ -68,6 +68,24 @@ export interface PriceSensitivityPoint {
   fleetAnnualUsdSaved: number;
 }
 
+/**
+ * Per-load-point contribution to the annual savings — the data behind a
+ * "savings by load profile" chart. Rows sum (by construction) to the
+ * headline `annualUsdSavedPerUnit` / `annualMwhSavedPerUnit`.
+ */
+export interface LoadProfileBreakdownPoint {
+  /** Converter load as % of rated poutW, as given in the assumptions. */
+  loadPct: number;
+  /** This point's weight normalized so all points sum to 1. */
+  weightFrac: number;
+  /** This design's efficiency at this load point (%, interpolated). */
+  efficiencyPct: number;
+  /** Per-unit annual MWh saved vs baseline attributable to this point. */
+  annualMwhSavedPerUnit: number;
+  /** Per-unit annual USD saved vs baseline attributable to this point. */
+  annualUsdSavedPerUnit: number;
+}
+
 /** Output of `energyEconomics()`. All monetary values in USD. */
 export interface EnergyEconomics {
   /** Profile-weighted efficiency of THIS design (%, interpolated curve). */
@@ -97,6 +115,12 @@ export interface EnergyEconomics {
   lossAtProfileW: number;
   /** Fleet annual savings at 0.5×, 0.75×, 1×, 1.25×, 1.5× the assumed price. */
   sensitivity: PriceSensitivityPoint[];
+  /**
+   * Per-load-point savings contribution — rows sum to the headline totals.
+   * Optional in the type only so older object literals (fixtures/stubs
+   * elsewhere) stay valid; `energyEconomics()` always populates it.
+   */
+  loadProfileBreakdown?: LoadProfileBreakdownPoint[];
 }
 
 /** Multipliers for the price-sensitivity sweep (5 points, centered on 1×). */
@@ -217,10 +241,12 @@ export function energyEconomics(
   const etaBase = a.baselineEfficiencyPct / 100;
 
   // Profile-weighted powers (W) and efficiencies (%).
+  const hours = a.hoursPerYear;
   let weightedEffPct = 0;
   let poutAvgW = 0; // Σ w·P_out
   let pinAvgW = 0; // Σ w·P_in (this design)
   let pinBaseAvgW = 0; // Σ w·P_in (baseline)
+  const loadProfileBreakdown: LoadProfileBreakdownPoint[] = [];
   for (const p of a.loadProfile) {
     const w = p.weight / weightSum;
     const effPct = interp1(xs, ys, p.loadPct);
@@ -228,13 +254,23 @@ export function energyEconomics(
       throw new Error(`economics: efficiency curve gives ${effPct}% at ${p.loadPct}% load`);
     }
     const pOut = (poutW * p.loadPct) / 100;
+    const pIn = pOut / (effPct / 100);
+    const pInBase = pOut / etaBase;
     weightedEffPct += w * effPct;
     poutAvgW += w * pOut;
-    pinAvgW += (w * pOut) / (effPct / 100);
-    pinBaseAvgW += (w * pOut) / etaBase;
+    pinAvgW += w * pIn;
+    pinBaseAvgW += w * pInBase;
+
+    const pointMwhSaved = (w * (pInBase - pIn) * hours) / W_PER_MW;
+    loadProfileBreakdown.push({
+      loadPct: p.loadPct,
+      weightFrac: w,
+      efficiencyPct: effPct,
+      annualMwhSavedPerUnit: pointMwhSaved,
+      annualUsdSavedPerUnit: pointMwhSaved * a.pricePerMwhUsd,
+    });
   }
 
-  const hours = a.hoursPerYear;
   const annualMwhPerUnit = (poutAvgW * hours) / W_PER_MW;
   const annualMwhInPerUnit = (pinAvgW * hours) / W_PER_MW;
   const annualMwhInBasePerUnit = (pinBaseAvgW * hours) / W_PER_MW;
@@ -272,5 +308,6 @@ export function energyEconomics(
     co2SavedTonnesPerYear,
     lossAtProfileW: pinAvgW - poutAvgW,
     sensitivity,
+    loadProfileBreakdown,
   };
 }

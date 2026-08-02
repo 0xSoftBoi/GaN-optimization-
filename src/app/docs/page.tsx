@@ -6,6 +6,8 @@
  * No data fetching — this page is documentation.
  */
 
+import { Term } from "@/components/ui/term";
+
 const SPEC_JSON = `{
   "spec": {
     "name": "5 kW bidirectional 800V→48V",
@@ -17,18 +19,55 @@ const SPEC_JSON = `{
   }
 }`;
 
+const TOC: { id: string; label: string }[] = [
+  { id: "topology", label: "Topology" },
+  { id: "loss", label: "Loss" },
+  { id: "magnetics", label: "Magnetics" },
+  { id: "thermal", label: "Thermal" },
+  { id: "control", label: "Control" },
+  { id: "simulation", label: "Simulation" },
+  { id: "outputs", label: "Outputs" },
+  { id: "compliance", label: "Compliance" },
+  { id: "optimizer", label: "Optimizer" },
+  { id: "copilot", label: "Copilot" },
+  { id: "economics-methodology", label: "Economics" },
+  { id: "business-assumptions", label: "Business assumptions" },
+  { id: "api", label: "API" },
+];
+
+function TableOfContents() {
+  return (
+    <nav
+      aria-label="On this page"
+      className="sticky top-14 z-30 -mx-4 border-b border-ink-600 bg-ink-900/95 px-4 py-2 backdrop-blur"
+    >
+      <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs">
+        {TOC.map((t) => (
+          <a key={t.id} href={`#${t.id}`} className="text-slate-400 transition-colors hover:text-volt">
+            {t.label}
+          </a>
+        ))}
+      </div>
+    </nav>
+  );
+}
+
 function Section({
   id,
   title,
+  lead,
   children,
 }: {
   id: string;
   title: string;
+  /** One line: why this section matters commercially, ahead of the physics. */
+  lead?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
-    <section id={id} className="panel">
+    <section id={id} className="panel scroll-mt-24">
       <h2 className="panel-title">{title}</h2>
+      {lead && <p className="mb-3 text-sm font-medium text-slate-200">{lead}</p>}
       <div className="space-y-3 text-sm leading-relaxed text-slate-300">{children}</div>
     </section>
   );
@@ -55,10 +94,12 @@ export default function DocsPage() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-baseline gap-3">
         <h1 className="text-xl font-bold text-slate-100">Methodology</h1>
-        <span className="text-xs text-slate-500">
+        <span className="text-xs text-slate-400">
           what the engines model, and where the models stop
         </span>
       </div>
+
+      <TableOfContents />
 
       <div className="panel border-[#f59e0b]/40">
         <p className="text-sm text-[#f59e0b]">
@@ -69,7 +110,11 @@ export default function DocsPage() {
         </p>
       </div>
 
-      <Section id="topology" title="Topology engine">
+      <Section
+        id="topology"
+        title="Topology engine"
+        lead="Why it matters commercially: picking the right circuit topology is the single biggest lever on both efficiency and BOM cost — get it wrong and no amount of tuning later recovers it."
+      >
         <p>
           Eleven topologies (buck family, boost, LLC half/full bridge, PSFB,
           DAB, totem-pole PFC, flyback, forward active-clamp) carry practical
@@ -89,7 +134,11 @@ export default function DocsPage() {
         </p>
       </Section>
 
-      <Section id="loss" title="Loss engine">
+      <Section
+        id="loss"
+        title="Loss engine"
+        lead="Why it matters commercially: every watt counted here is a watt your energy bill and cooling budget pay for, every year the converter runs."
+      >
         <p>Per switch position, five loss terms are summed across parallel devices:</p>
         <Eq>
           Pcond = Irms² · Rds(on)(Tj), with Rds(T) = R25 · (1 + k·(T − 25)) — datasheet tempco
@@ -117,7 +166,11 @@ export default function DocsPage() {
         </p>
       </Section>
 
-      <Section id="magnetics" title="Magnetics design">
+      <Section
+        id="magnetics"
+        title="Magnetics design"
+        lead="Why it matters commercially: magnetics are usually the biggest, priciest, hottest parts in the box — sizing them wrong inflates BOM cost and blows the thermal budget at once."
+      >
         <p>
           Core selection is by area product:{" "}
           <code className="text-volt/90">Ap = Ae·Aw ≥ (L·Ipk·Irms) / (Bmax·J·ku)</code>{" "}
@@ -135,7 +188,11 @@ export default function DocsPage() {
         </p>
       </Section>
 
-      <Section id="thermal" title="Thermal engine">
+      <Section
+        id="thermal"
+        title="Thermal engine"
+        lead="Why it matters commercially: thermal margin is what stands between a shipped product and a field return — it is the single biggest driver of warranty risk."
+      >
         <p>
           A junction→case→sink→ambient resistance chain per device:{" "}
           <code className="text-volt/90">Tj = Tamb + P·(RthJC + RthCS + RthSA)</code>.
@@ -151,7 +208,11 @@ export default function DocsPage() {
         </p>
       </Section>
 
-      <Section id="control" title="Control design">
+      <Section
+        id="control"
+        title="Control design"
+        lead="Why it matters commercially: a badly tuned loop shows up as instability or slow response under a real load step — a field failure, not just a spec-sheet number."
+      >
         <p>
           Averaged small-signal models per topology (buck-family LC, boost
           with RHP zero, resonant approximations) feed a compensator designer:
@@ -166,7 +227,11 @@ export default function DocsPage() {
         </p>
       </Section>
 
-      <Section id="simulation" title="Switching simulation">
+      <Section
+        id="simulation"
+        title="Switching simulation"
+        lead="Why it matters commercially: waveform-level checks catch ripple and stress problems before they become a compliance finding or a reliability surprise in the field."
+      >
         <p>
           Piecewise-linear state-space integration of the switching cell
           (ideal switches + L/C/ESR) over ≥6 periods to steady state, yielding
@@ -175,7 +240,11 @@ export default function DocsPage() {
         </p>
       </Section>
 
-      <Section id="outputs" title="Schematic, BOM, layout guidance">
+      <Section
+        id="outputs"
+        title="Schematic, BOM, layout guidance"
+        lead="Why it matters commercially: this is what a buyer, contract manufacturer, or fab actually receives — netlist, priced BOM, and layout guidance ready to hand off."
+      >
         <p>
           The schematic generator emits a netlist, a one-line SVG rendering,
           and a SPICE .cir netlist for external verification. The BOM engine
@@ -187,7 +256,11 @@ export default function DocsPage() {
         </p>
       </Section>
 
-      <Section id="compliance" title="Compliance checks">
+      <Section
+        id="compliance"
+        title="Compliance checks"
+        lead="Why it matters commercially: a compliance fail caught here is a five-minute redesign; the same fail caught in certification testing is a missed schedule and a re-spin."
+      >
         <p>
           Rule-based review of the finished design: device voltage derating
           (peak stress ≤ 80% of rating), junction-temperature margin ≥ 15 °C,
@@ -203,7 +276,18 @@ export default function DocsPage() {
         </p>
       </Section>
 
-      <Section id="optimizer" title="Optimizer & Pareto exploration">
+      <Section
+        id="optimizer"
+        title="Optimizer & Pareto exploration"
+        lead={
+          <>
+            Why it matters commercially: this is the step that turns &quot;a design&quot;
+            into &quot;the best available trade-off for your spec&quot; — see{" "}
+            <Term k="pareto">Pareto</Term> — the number an executive scanning /optimize
+            actually looks at.
+          </>
+        }
+      >
         <p>
           The composition root scores topologies, then sweeps the top
           candidates across the switch catalog × log-spaced switching
@@ -218,7 +302,11 @@ export default function DocsPage() {
         </p>
       </Section>
 
-      <Section id="copilot" title="Copilot parser">
+      <Section
+        id="copilot"
+        title="Copilot parser"
+        lead="Why it matters commercially: one typed sentence in, a fully priced, fully engineered design out — no waiting on a distributor FAE for a first-pass answer."
+      >
         <p>
           The natural-language front end is a deterministic parser: it
           extracts power (&quot;5kW&quot;), voltage pairs (&quot;800V to
@@ -227,6 +315,87 @@ export default function DocsPage() {
           every assumption plus any unrecognized fragments alongside a
           confidence score. No LLM in the loop — same prompt, same spec, every
           time.
+        </p>
+      </Section>
+
+      <Section
+        id="economics-methodology"
+        title="Economics methodology"
+        lead="Why it matters commercially: this is the exact math behind every $/yr, payback, and CO2 number shown on /economics and elsewhere on the site."
+      >
+        <p>
+          <Term k="tco">Fleet economics</Term> compares this design&apos;s efficiency curve
+          against a flat baseline efficiency, processing the same delivered output energy,
+          over a weighted load-duty profile. All formulas are per unit unless noted.
+        </p>
+        <Eq>E_out [MWh/yr] = P_out[W] × loadPct/100 × hours/yr / 1e6, summed over profile points (weights normalized to 1)</Eq>
+        <Eq>E_in [MWh/yr] = E_out / η(loadPct) — this design&apos;s interpolated efficiency curve</Eq>
+        <Eq>E_in,base [MWh/yr] = E_out / η_baseline — the flat baseline efficiency</Eq>
+        <Eq>$ saved/yr (per unit) = (E_in,base − E_in) × price [$/MWh]</Eq>
+        <Eq>Fleet $/yr = $ saved/yr (per unit) × fleet units; Horizon $ = Fleet $/yr × horizon years (undiscounted)</Eq>
+        <Eq>Payback [months] = BOM cost [$] / $ saved/yr (per unit) × 12 — null when savings ≤ 0</Eq>
+        <Eq>CO2 avoided [t/yr] = (E_in,base − E_in) × fleet units × carbon intensity [kg/MWh] / 1000</Eq>
+        <p>
+          Every input to these formulas — energy price, operating hours, baseline efficiency,
+          fleet size, horizon, load profile, carbon intensity — is a user-adjustable field.{" "}
+          <code className="text-volt/90">defaultAssumptions()</code> in{" "}
+          <code className="text-volt/90">src/lib/economics</code> supplies clearly-labeled
+          starting points, never asserted facts; <code className="text-volt/90">/api/economics</code>{" "}
+          echoes the fully-resolved assumption set back so the UI never displays a hidden
+          default. Nothing in this module fetches or looks up live market data.
+        </p>
+      </Section>
+
+      <Section
+        id="business-assumptions"
+        title="Business assumptions"
+        lead="Why it matters commercially: the defaults below are honest starting points, not looked-up facts — set them to match your own tariff, grid, and duty cycle before treating any $ or CO2 number as final."
+      >
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+          Energy price — default $70/MWh
+        </h3>
+        <p className="text-xs text-slate-400">
+          Retail industrial electricity in the US has recently run roughly $60–110/MWh
+          (source: U.S. Energy Information Administration, <em>Electric Power Monthly</em>,
+          eia.gov/electricity/monthly); EU industrial rates are often $100–250/MWh (source:
+          Eurostat, &quot;Electricity price statistics&quot;, ec.europa.eu/eurostat); wholesale
+          hub prices can sit at $20–60/MWh depending on the ISO/RTO. Pick the number your
+          meter actually pays.
+        </p>
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+          Grid carbon intensity — default 350 kg CO2/MWh
+        </h3>
+        <p className="text-xs text-slate-400">
+          Grid carbon intensity varies enormously by region: the world average is on the
+          order of 400–450 kg CO2/MWh (source: IEA, <em>Global Energy Review: CO2
+          Emissions</em>, iea.org; Ember, <em>Global Electricity Review</em>,
+          ember-climate.org), the US grid roughly 350–400 (EPA eGRID, epa.gov/egrid), the EU
+          roughly 250, hydro/nuclear-heavy grids under 50, coal-heavy grids 700+. Set it to
+          your region, not the default.
+        </p>
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+          Baseline efficiency — default 96.5% flat
+        </h3>
+        <p className="text-xs text-slate-400">
+          A flat &quot;titanium-class&quot; reference: the 80 PLUS Titanium certification tier
+          requires roughly 96% efficiency at 50% load (230 V). 96.5% flat is a deliberately
+          tough, clearly-labeled comparison baseline — swap in your own incumbent&apos;s
+          measured efficiency curve for a fairer comparison where you have one.
+        </p>
+        <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+          Operating hours &amp; load profile — default 8760 h/yr, datacenter-weighted
+        </h3>
+        <p className="text-xs text-slate-400">
+          8760 h/yr (24×365) assumes continuous duty; derate it for intermittent operation
+          (e.g. ~2000–2900 h/yr is typical of business-hours-only equipment). The default
+          load-duty profile weights 60–90% load most heavily, typical of a well-utilized rack
+          power system — override it if your fleet&apos;s duty cycle differs.
+        </p>
+        <p className="text-xs text-[#f59e0b]">
+          None of these figures are fetched, audited, or asserted as current market data —
+          they are editable engineering assumptions with typical published ranges quoted
+          above for context. Validate against your own tariff and grid data before using the
+          $ or CO2 numbers commercially.
         </p>
       </Section>
 

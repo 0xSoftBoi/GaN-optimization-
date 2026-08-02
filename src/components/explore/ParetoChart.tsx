@@ -8,6 +8,7 @@
 
 import { useMemo, useState } from "react";
 import type { DesignCandidateSummary } from "@/lib/types";
+import { Term } from "@/components/ui/term";
 import { fmtHz, fmtPct, fmtUsd } from "./format";
 import {
   candidateKey,
@@ -119,26 +120,33 @@ export default function ParetoChart({
     );
   };
 
-  // Tooltip near the hovered point, flipped when close to an edge.
+  // Tooltip near the hovered point, flipped when close to an edge. Width is
+  // sized from the longest line (the app renders in a monospace font, so a
+  // per-character estimate is accurate) instead of a fixed guess that
+  // overflows for long device ids.
   let tip: React.ReactNode = null;
   if (hovered) {
+    const line1 = `${hovered.deviceId} · ${fmtHz(hovered.fswHz)}`;
+    const line2 = `${hovered.topologyId} · ${fmtPct(hovered.efficiencyPct, 2)}`;
+    const line3 = `${fmtUsd(hovered.bomCostUsd)} · ${Math.round(hovered.powerDensityWPerL)} W/L`;
+    const maxChars = Math.max(line1.length, line2.length, line3.length);
     const cx = sx(hovered.bomCostUsd);
     const cy = sy(hovered.efficiencyPct);
-    const tw = 190;
+    const tw = Math.min(280, Math.max(190, maxChars * 7 + 16));
     const th = 52;
-    const tx = cx + tw + 14 > W - M.right ? cx - tw - 12 : cx + 12;
+    const tx = Math.min(Math.max(cx + tw + 14 > W - M.right ? cx - tw - 12 : cx + 12, M.left), W - M.right - tw);
     const ty = cy - th - 10 < M.top ? cy + 10 : cy - th - 10;
     tip = (
       <g pointerEvents="none">
         <rect x={tx} y={ty} width={tw} height={th} rx={4} fill="#0a0e14" stroke={GRID} />
         <text x={tx + 8} y={ty + 16} fontSize={12} fill="#e2e8f0">
-          {hovered.deviceId} · {fmtHz(hovered.fswHz)}
+          {line1}
         </text>
         <text x={tx + 8} y={ty + 31} fontSize={12} fill={TEXT}>
-          {hovered.topologyId} · {fmtPct(hovered.efficiencyPct, 2)}
+          {line2}
         </text>
         <text x={tx + 8} y={ty + 46} fontSize={12} fill={TEXT}>
-          {fmtUsd(hovered.bomCostUsd)} · {Math.round(hovered.powerDensityWPerL)} W/L
+          {line3}
         </text>
       </g>
     );
@@ -152,21 +160,24 @@ export default function ParetoChart({
           <svg width="12" height="12" aria-hidden>
             <circle cx="6" cy="6" r="5" fill={VOLT} />
           </svg>
-          Pareto front
+          <Term k="pareto">Pareto front</Term>
         </span>
-        <span className="inline-flex items-center gap-1.5">
+        <span title="Beaten by another candidate" className="inline-flex cursor-help items-center gap-1.5">
           <svg width="12" height="12" aria-hidden>
             <circle cx="6" cy="6" r="5" fill={SLATE} />
           </svg>
           dominated
         </span>
-        <span className="inline-flex items-center gap-1.5">
+        <span
+          title="Violates a thermal or spec limit"
+          className="inline-flex cursor-help items-center gap-1.5"
+        >
           <svg width="12" height="12" aria-hidden>
             <circle cx="6" cy="6" r="4.5" fill="none" stroke={ROSE} strokeWidth="2" />
           </svg>
           infeasible
         </span>
-        <span className="text-slate-600">point area ∝ power density (W/L)</span>
+        <span className="text-slate-400">point size ∝ power density (bigger = more W per liter)</span>
       </div>
 
       <svg

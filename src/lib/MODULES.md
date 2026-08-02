@@ -83,3 +83,16 @@ Required public exports (exact names/signatures; extra exports welcome):
   compose full DesignResult (schematic, bom, layout, compliance, compensator,
   simulation, firmware, efficiency curve at 10–100 % load).
 - `optimize(spec: DesignSpec): { candidates: DesignCandidateSummary[]; best: DesignResult }`
+
+## economics (`src/lib/economics/`)
+- `defaultAssumptions(spec: DesignSpec): EconomicsAssumptions` — clearly-labeled
+  EDITABLE starting points (price $/MWh, hours/yr, load profile, baseline
+  efficiency, fleet units, horizon, carbon intensity), never asserted market
+  data; see the module header + `/docs#business-assumptions` for sourced
+  typical ranges.
+- `assertValidAssumptions(a: EconomicsAssumptions): void` — throws on any
+  unusable assumption set (negative price, empty load profile, etc.).
+- `energyEconomics(result: DesignResult, a: EconomicsAssumptions): EnergyEconomics`
+  — converts a design's efficiency curve into $/yr saved vs a flat baseline,
+  fleet TCO, payback months, CO2 avoided, and a price-sensitivity sweep, over
+  a weighted load-duty profile. Pure arithmetic, no I/O.

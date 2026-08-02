@@ -6,7 +6,7 @@
  * text badge or numeric label alongside.
  */
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import type {
   ComplianceReport,
   DesignResult,
@@ -18,6 +18,8 @@ import type {
   ThermalReport,
 } from "@/lib/types";
 import { roundSig } from "@/lib/util";
+import { formatUsd as fmtUsdCompact } from "@/lib/format";
+import { Term } from "@/components/ui/term";
 import {
   bomToCsv,
   chosenPowerDensity,
@@ -30,6 +32,7 @@ import {
   marginBarFrac,
   marginTone,
 } from "./format";
+import { complianceConsequence, complianceVerdict, friendlyErrorMessage } from "./summary";
 
 // ---------------------------------------------------------------------------
 // Shared bits
@@ -54,12 +57,18 @@ const TECH_BADGE: Record<SwitchTech, string> = {
   Si: "border-slate-500/40 bg-slate-500/10 text-slate-400",
 };
 
+const TECH_LABEL: Record<SwitchTech, ReactNode> = {
+  GaN: <Term k="gan">GaN</Term>,
+  SiC: <Term k="sic">SiC</Term>,
+  Si: "Si",
+};
+
 function TechBadge({ tech }: { tech: SwitchTech }) {
   return (
     <span
       className={`inline-block rounded border px-1.5 py-0.5 text-[10px] font-bold tracking-wider ${TECH_BADGE[tech]}`}
     >
-      {tech}
+      {TECH_LABEL[tech]}
     </span>
   );
 }
@@ -71,9 +80,12 @@ function TechBadge({ tech }: { tech: SwitchTech }) {
 export function StagedProgress({
   stages,
   active,
+  elapsedSec,
 }: {
   stages: string[];
   active: number;
+  /** Real elapsed seconds since the run started — these stages are indicative, not measured. */
+  elapsedSec?: number;
 }) {
   return (
     <div className="panel mx-auto max-w-md">
@@ -94,7 +106,7 @@ export function StagedProgress({
                     ? "text-volt"
                     : state === "done"
                       ? "text-slate-400"
-                      : "text-slate-600"
+                      : "text-slate-400"
                 }
               >
                 {s}
@@ -103,6 +115,10 @@ export function StagedProgress({
           );
         })}
       </ol>
+      <p className="mt-3 text-center text-[11px] text-slate-500">
+        Indicative stages — actual timing varies by design complexity
+        {elapsedSec !== undefined && ` · ${elapsedSec}s elapsed`}
+      </p>
     </div>
   );
 }
@@ -112,6 +128,7 @@ export function ErrorPanel({
   details,
   onRetry,
 }: {
+  /** Raw technical message from the API/engine — never shown as the headline. */
   message: string;
   details?: string[];
   onRetry: () => void;
@@ -119,14 +136,22 @@ export function ErrorPanel({
   return (
     <div className="panel mx-auto max-w-lg border-rose-400/40">
       <div className="panel-title text-rose-400">Design failed</div>
-      <p className="text-sm text-slate-300">{message}</p>
-      {details && details.length > 0 && (
-        <ul className="mt-2 list-inside list-disc text-xs text-slate-500">
-          {details.map((d) => (
-            <li key={d}>{d}</li>
-          ))}
-        </ul>
-      )}
+      <p className="text-sm text-slate-300">{friendlyErrorMessage(message)}</p>
+      <details className="mt-2 text-xs text-slate-500">
+        <summary className="cursor-pointer select-none hover:text-slate-300">
+          Technical details
+        </summary>
+        <p className="mt-1 rounded border border-ink-600 bg-ink-900 p-2 font-mono text-[11px] text-slate-400">
+          {message}
+        </p>
+        {details && details.length > 0 && (
+          <ul className="mt-2 list-inside list-disc">
+            {details.map((d) => (
+              <li key={d}>{d}</li>
+            ))}
+          </ul>
+        )}
+      </details>
       <div className="mt-4 flex gap-3">
         <button className="btn" onClick={onRetry}>
           Retry
@@ -145,18 +170,24 @@ export function ErrorPanel({
 
 export function StatsRow({ result }: { result: DesignResult }) {
   const density = chosenPowerDensity(result);
-  const stats: { label: string; value: string }[] = [
-    { label: "Topology", value: result.topology.name },
-    { label: "Efficiency", value: fmtPct(result.efficiencyPct, 2) },
-    { label: "Total loss", value: fmtW(result.losses.totalW) },
-    { label: "BOM cost", value: fmtUsd(result.bomCostUsd) },
-    { label: "fsw", value: fmtHz(result.fswHz) },
-    { label: "Power density", value: density !== undefined ? fmtPowerDensity(density) : "—" },
+  const stats: { key: string; label: ReactNode; value: string }[] = [
+    { key: "topology", label: "Topology", value: result.topology.name },
+    { key: "efficiency", label: "Efficiency", value: fmtPct(result.efficiencyPct, 2) },
+    { key: "loss", label: "Total loss", value: fmtW(result.losses.totalW) },
+    // Compact, grouped, no-cents formatting for a headline stat tile — exact
+    // cents belong in the BOM line items (BomPanel), not here.
+    { key: "bom", label: <><Term k="bom">BOM</Term> cost</>, value: fmtUsdCompact(result.bomCostUsd) },
+    { key: "fsw", label: <Term k="fsw">fsw</Term>, value: fmtHz(result.fswHz) },
+    {
+      key: "density",
+      label: <Term k="power-density">Power density</Term>,
+      value: density !== undefined ? fmtPowerDensity(density) : "—",
+    },
   ];
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-6">
       {stats.map((s) => (
-        <div key={s.label} className="stat">
+        <div key={s.key} className="stat">
           <div className="stat-label">{s.label}</div>
           <div className="stat-value text-base leading-snug">{s.value}</div>
         </div>
@@ -221,6 +252,10 @@ export function DeviceTable({ devices }: { devices: DeviceLoss[] }) {
   return (
     <div className="panel">
       <div className="panel-title">Switch devices</div>
+      <p className="mb-2 text-[11px] text-slate-500">
+        Lower <Term k="rds-on">Rds(on)</Term> and <Term k="qg">Qg</Term> both cut losses; watch{" "}
+        <Term k="tj">Tj</Term> against the thermal limit below.
+      </p>
       <div className="overflow-x-auto">
         <table className="table-terminal">
           <thead>
@@ -229,7 +264,9 @@ export function DeviceTable({ devices }: { devices: DeviceLoss[] }) {
               <th>Part</th>
               <th>Tech</th>
               <th>Pos × ∥</th>
-              <th>Tj</th>
+              <th>
+                <Term k="tj">Tj</Term>
+              </th>
               <th>Loss</th>
             </tr>
           </thead>
@@ -268,7 +305,9 @@ export function DeviceTable({ devices }: { devices: DeviceLoss[] }) {
 export function MagneticsCards({ magnetics }: { magnetics: MagneticDesign[] }) {
   return (
     <div className="panel">
-      <div className="panel-title">Magnetics</div>
+      <div className="panel-title">
+        <Term k="magnetics">Magnetics</Term>
+      </div>
       {magnetics.length === 0 ? (
         <p className="text-sm text-slate-500">No magnetic components required.</p>
       ) : (
@@ -351,7 +390,7 @@ export function ThermalPanel({ thermal }: { thermal: ThermalReport }) {
                 <span className="text-slate-500">
                   {fmtC(n.tjC, 0)} / {fmtC(n.limitC, 0)} ·{" "}
                   <span className={TONE_TEXT[tone]}>
-                    {TONE_LABEL[tone]} · margin {fmtC(n.marginC, 0)}
+                    {TONE_LABEL[tone]} · <Term k="thermal-margin">margin</Term> {fmtC(n.marginC, 0)}
                   </span>
                 </span>
               </div>
@@ -389,6 +428,10 @@ export function SchematicPanel({ svg }: { svg: string }) {
         // Our own generated SVG from the schematic engine — safe to inline.
         dangerouslySetInnerHTML={{ __html: svg }}
       />
+      <p className="mt-2 text-[11px] text-slate-500">
+        Exportable as a <Term k="spice">SPICE</Term> netlist via the export buttons above, for
+        verification in your own tools.
+      </p>
     </div>
   );
 }
@@ -407,7 +450,9 @@ export function BomPanel({
   return (
     <div className="panel">
       <div className="mb-3 flex items-center justify-between">
-        <span className="panel-title mb-0">Bill of materials</span>
+        <span className="panel-title mb-0">
+          <Term k="bom">Bill of materials</Term>
+        </span>
         <button
           className="btn px-3 py-1 text-xs"
           onClick={() => downloadBlob(bomToCsv(bom, totalUsd), "voltforge-bom.csv", "text/csv")}
@@ -486,10 +531,90 @@ export function CompliancePanel({ compliance }: { compliance: ComplianceReport }
             <span>
               <span className="text-slate-300">{f.rule}</span>
               <span className="block text-slate-500">{f.detail}</span>
+              {f.severity === "fail" && (
+                <span className="block text-rose-300/80">
+                  Consequence: {complianceConsequence(f.rule)}.
+                </span>
+              )}
             </span>
           </li>
         ))}
       </ul>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// (10b) Executive-persona condensed twin of Compliance + Warnings
+// ---------------------------------------------------------------------------
+
+/**
+ * Executive persona's "risk & compliance" card: the verdict, the top FAIL
+ * consequences, and a trimmed warnings list — everything a manager needs to
+ * judge risk without the full itemized findings list (that stays in the
+ * engineer persona's CompliancePanel + WarningsStrip). Carries id="warnings-strip"
+ * so the title-bar warnings chip has somewhere to land in this persona too.
+ */
+export function ComplianceVerdictCard({
+  compliance,
+  warnings,
+}: {
+  compliance: ComplianceReport;
+  warnings: string[];
+}) {
+  const verdict = complianceVerdict(compliance);
+  const topFails = compliance.findings.filter((f) => f.severity === "fail").slice(0, 3);
+  return (
+    <div className="panel">
+      <div className="panel-title">Risk & compliance verdict</div>
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <span
+          className={`inline-block rounded border px-2 py-1 text-xs font-bold ${
+            verdict.passed
+              ? "border-lime-400/40 bg-lime-400/10 text-lime-400"
+              : "border-rose-400/40 bg-rose-400/10 text-rose-400"
+          }`}
+        >
+          {verdict.passed ? "PASSED" : "ISSUES FOUND"}
+        </span>
+        <span className="text-sm text-slate-300">{verdict.headline}</span>
+      </div>
+      {topFails.length > 0 && (
+        <ul className="mb-3 space-y-1.5 border-t border-ink-700 pt-2 text-xs text-slate-300">
+          {topFails.map((f, i) => (
+            <li key={`${f.rule}-${i}`}>
+              <span className="font-semibold text-rose-400">{f.rule}</span> — {f.detail}
+              <span className="block text-rose-300/70">
+                Consequence: {complianceConsequence(f.rule)}.
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+      <div id="warnings-strip">
+        {warnings.length === 0 ? (
+          <p className="text-xs text-slate-500">No design warnings.</p>
+        ) : (
+          <>
+            <div className="mb-1 text-[10px] uppercase tracking-wider text-slate-500">
+              {warnings.length} warning{warnings.length === 1 ? "" : "s"}
+            </div>
+            <ul className="space-y-1 text-xs text-amber-200/80">
+              {warnings.slice(0, 3).map((w) => (
+                <li key={w} className="flex gap-2">
+                  <span className="text-amber-500">⚠</span>
+                  <span>{w}</span>
+                </li>
+              ))}
+            </ul>
+            {warnings.length > 3 && (
+              <p className="mt-1 text-[10px] text-slate-500">
+                +{warnings.length - 3} more — switch to Engineer view for the full list.
+              </p>
+            )}
+          </>
+        )}
+      </div>
     </div>
   );
 }
@@ -568,7 +693,7 @@ export function LayoutPanel({ layout }: { layout: LayoutGuidance }) {
             <ol className="space-y-0.5 text-slate-300">
               {layout.stackup.map((s, i) => (
                 <li key={s}>
-                  <span className="text-slate-600">L{i + 1}</span> {s}
+                  <span className="text-slate-400">L{i + 1}</span> {s}
                 </li>
               ))}
             </ol>

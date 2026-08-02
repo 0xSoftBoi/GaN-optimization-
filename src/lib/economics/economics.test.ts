@@ -271,3 +271,53 @@ describe("energyEconomics — price sensitivity", () => {
     expect(hi.annualMwhSavedPerUnit).toBeCloseTo(lo.annualMwhSavedPerUnit, 10);
   });
 });
+
+describe("energyEconomics — load-profile breakdown", () => {
+  const curve: EfficiencyPoint[] = [
+    { loadPct: 20, efficiencyPct: 94, lossW: 0 },
+    { loadPct: 60, efficiencyPct: 98, lossW: 0 },
+    { loadPct: 100, efficiencyPct: 97, lossW: 0 },
+  ];
+  const result = stubResult({ poutW: 1000, bomCostUsd: 150, curve });
+  const a = baseAssumptions({
+    loadProfile: [
+      { loadPct: 20, weight: 1 },
+      { loadPct: 60, weight: 2 },
+      { loadPct: 100, weight: 1 },
+    ],
+  });
+  const eco = energyEconomics(result, a);
+  // The field is optional in the type (so older fixtures elsewhere stay
+  // valid) but energyEconomics() always populates it — assert that here too.
+  const breakdown = eco.loadProfileBreakdown;
+  if (!breakdown) throw new Error("energyEconomics() must populate loadProfileBreakdown");
+
+  it("one row per profile point, in the same order", () => {
+    expect(breakdown.map((r) => r.loadPct)).toEqual([20, 60, 100]);
+  });
+
+  it("weight fractions are normalized and sum to 1", () => {
+    const total = breakdown.reduce((s, r) => s + r.weightFrac, 0);
+    expect(total).toBeCloseTo(1, 10);
+    expect(breakdown[1].weightFrac).toBeCloseTo(0.5, 10); // weight 2 of 4
+  });
+
+  it("row efficiency matches the interpolated curve at that load point", () => {
+    expect(breakdown[0].efficiencyPct).toBeCloseTo(94, 10);
+    expect(breakdown[1].efficiencyPct).toBeCloseTo(98, 10);
+    expect(breakdown[2].efficiencyPct).toBeCloseTo(97, 10);
+  });
+
+  it("rows sum (conserve) to the headline per-unit savings", () => {
+    const mwh = breakdown.reduce((s, r) => s + r.annualMwhSavedPerUnit, 0);
+    const usd = breakdown.reduce((s, r) => s + r.annualUsdSavedPerUnit, 0);
+    expect(mwh).toBeCloseTo(eco.annualMwhSavedPerUnit, 9);
+    expect(usd).toBeCloseTo(eco.annualUsdSavedPerUnit, 8);
+  });
+
+  it("a row's $ = its MWh × the assumed price", () => {
+    for (const row of breakdown) {
+      expect(row.annualUsdSavedPerUnit).toBeCloseTo(row.annualMwhSavedPerUnit * a.pricePerMwhUsd, 9);
+    }
+  });
+});

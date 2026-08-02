@@ -269,3 +269,69 @@ export function radiusForDensity(
 export function candidateKey(c: DesignCandidateSummary): string {
   return `${c.topologyId}|${c.deviceId}|${Math.round(c.fswHz)}`;
 }
+
+// ---------------------------------------------------------------------------
+// $ lens — inline, per-candidate fleet economics (rated-load approximation)
+// ---------------------------------------------------------------------------
+
+/**
+ * Default assumptions for the inline Pareto "$ lens" — deliberately the same
+ * numbers `defaultAssumptions()` in @/lib/economics uses (70 $/MWh, 8760 h/yr,
+ * a 96.5%-flat titanium-class baseline), so this quick annotation and the full
+ * /economics tool never disagree at their shared defaults. This is a
+ * SINGLE-POINT approximation at rated output (100% load) — it does not
+ * profile-weight across a duty cycle the way /economics does. Labeled as such
+ * in the UI; link to /economics for the full profile-weighted number.
+ */
+export const QUICK_LENS_DEFAULTS = {
+  pricePerMwhUsd: 70,
+  hoursPerYear: 8760,
+  baselineEfficiencyPct: 96.5,
+} as const;
+
+export interface CandidateFleetEconomics {
+  fleetUnits: number;
+  /** bomCostUsd × fleetUnits. */
+  fleetBomTotalUsd: number;
+  /** Annual $ lost to conversion loss, one unit, at rated output. */
+  unitAnnualLossCostUsd: number;
+  /** unitAnnualLossCostUsd × fleetUnits. */
+  fleetAnnualLossCostUsd: number;
+  /** Fleet annual $ saved vs the flat baseline, at rated output (negative if worse). */
+  fleetAnnualSavingsVsBaselineUsd: number;
+}
+
+/**
+ * Quick per-candidate fleet economics at rated output, using
+ * QUICK_LENS_DEFAULTS. Pure arithmetic — no engine run, safe to call on every
+ * hover. `poutW` is the spec's rated output power (same for every candidate
+ * in a run).
+ */
+export function candidateFleetEconomics(
+  c: Pick<DesignCandidateSummary, "efficiencyPct" | "bomCostUsd">,
+  poutW: number,
+  fleetUnits: number,
+): CandidateFleetEconomics {
+  const { pricePerMwhUsd, hoursPerYear, baselineEfficiencyPct } = QUICK_LENS_DEFAULTS;
+  const pInW = poutW / (c.efficiencyPct / 100);
+  const pInBaseW = poutW / (baselineEfficiencyPct / 100);
+  const mwhPerUnit = (hoursPerYear) / 1e6;
+  const unitAnnualLossCostUsd = (pInW - poutW) * mwhPerUnit * pricePerMwhUsd;
+  const unitAnnualSavingsVsBaselineUsd = (pInBaseW - pInW) * mwhPerUnit * pricePerMwhUsd;
+  return {
+    fleetUnits,
+    fleetBomTotalUsd: c.bomCostUsd * fleetUnits,
+    unitAnnualLossCostUsd,
+    fleetAnnualLossCostUsd: unitAnnualLossCostUsd * fleetUnits,
+    fleetAnnualSavingsVsBaselineUsd: unitAnnualSavingsVsBaselineUsd * fleetUnits,
+  };
+}
+
+/** The cheapest feasible candidate by BOM cost, or null when none are feasible. */
+export function cheapestFeasible(
+  cands: DesignCandidateSummary[],
+): DesignCandidateSummary | null {
+  const feasible = cands.filter((c) => c.feasible);
+  if (feasible.length === 0) return null;
+  return feasible.reduce((best, c) => (c.bomCostUsd < best.bomCostUsd ? c : best));
+}

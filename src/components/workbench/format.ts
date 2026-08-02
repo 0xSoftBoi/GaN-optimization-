@@ -21,8 +21,17 @@ export function fmtHz(x: number): string {
   return siFormat(x, "Hz", 3);
 }
 
+/**
+ * Exact-cents USD with thousands grouping — for BOM line items and totals,
+ * where the last cent is meaningful ($4.20/part × qty). Headline stat tiles
+ * use the compact `formatUsd` from `@/lib/format` instead (no cents, "$1.2M"
+ * style) — see StatsRow / ImpactPanel.
+ */
 export function fmtUsd(x: number): string {
-  return `$${x.toFixed(2)}`;
+  if (!Number.isFinite(x)) return `$${String(x)}`;
+  const sign = x < 0 ? "-" : "";
+  const abs = Math.abs(x);
+  return `${sign}$${abs.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export function fmtPct(x: number, digits = 1): string {

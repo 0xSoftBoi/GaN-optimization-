@@ -103,7 +103,7 @@ Transim-style vendor sponsorship.
       workarounds or deploys into unrelated existing projects.
 
 ### M4 — Sell-ready depth + trust loop (v2, loop iterations)
-- [ ] Persona UX (user-requested, priority): energy-economics engine
+- [x] Persona UX (user-requested, priority): energy-economics engine
       (efficiency → $/yr, TCO, payback, CO₂ at fleet scale with $/MWh and load
       profiles) + executive/trader view with plain-language KPIs alongside the
       engineer workbench; glossary tooltips; professional formatting polish
@@ -146,3 +146,5 @@ ahead of the calibration set.
 - 2026-08-01 · it2 · Device-physics core (TECHPLAN U1-U6): nonlinear Coss (V*Qoss), gate-charge-partition timing, power-law Rds(Tj)+k_dyn, Coss-limited Eoff, continuous ZVS fraction, anchor parts EPC2218/LMG3522/C3M0075120K; 551 tests green; adversarially verified.
 - 2026-08-01 · it1 · M1+M2 complete: 16 engine modules, optimizer, 6 API routes, 5 UI pages; MASTERPLAN.md adopted; 484 tests green, build green.
 - 2026-08-02 · it-ux-1 · Persona UX foundations landed (economics engine + /api/economics, format lib, glossary/persona primitives); UX audit found and fixed two real bugs: Pareto→workbench hand-off used the wrong storage/key/shape (silently fell back to the demo spec) and two DEFAULT_SPECs had drifted (vinMaxV 880 vs 900). 597 tests green. Deployment still blocked on Vercel project-creation permission (unchanged — see M3).
+- 2026-08-01 · it-ux · Persona UX: economics engine + executive/trader layer, /economics fleet calculator, glossary tooltips.
+- 2026-08-02 · it-ux-2 · QA/consistency pass on the persona-UX work: typecheck+vitest(636)+build green; fixed a real $-formatting inconsistency (CandidateCard's fleet-scale $ lens used exact-cents `fmtUsd` instead of the compact `formatUsd` every other fleet-scale number on /optimize uses); added `/economics` to the global nav (previously reachable only from the landing page and an in-page /optimize link, not from the persistent header); documented the `economics` module in `src/lib/MODULES.md` (contract file had no entry for it). Verified: persona toggle is a single shared localStorage key across all pages, every `<Term>` glossary key is compile-time checked (no missing-key crash possible), all commercial defaults remain user-editable and sourced in /docs, no edits touched src/lib/loss|data|topology.

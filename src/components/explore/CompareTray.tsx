@@ -69,7 +69,7 @@ export default function CompareTray({
                     <button
                       type="button"
                       aria-label={`Remove ${d.id} from compare`}
-                      className="text-slate-600 hover:text-rose-400"
+                      className="text-slate-500 hover:text-rose-400"
                       onClick={() => onRemove(d.id)}
                     >
                       ×
