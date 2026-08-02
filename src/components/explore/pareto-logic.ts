@@ -16,7 +16,7 @@ export const DEFAULT_SPEC: DesignSpec = {
   conversion: "dc-dc",
   vinMinV: 680,
   vinNomV: 800,
-  vinMaxV: 880,
+  vinMaxV: 900,
   voutV: 48,
   poutW: 5000,
   bidirectional: true,
@@ -24,9 +24,6 @@ export const DEFAULT_SPEC: DesignSpec = {
   ambientC: 40,
   cooling: "forced-air",
 };
-
-/** localStorage key the workbench reads the handed-off spec from. */
-export const SPEC_STORAGE_KEY = "voltforge:spec";
 
 /** Shape of the /api/optimize response body. */
 export interface OptimizeResponse {

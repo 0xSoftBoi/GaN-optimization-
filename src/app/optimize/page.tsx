@@ -14,9 +14,9 @@ import CandidateCard from "@/components/explore/CandidateCard";
 import ParetoChart from "@/components/explore/ParetoChart";
 import SpecForm from "@/components/explore/SpecForm";
 import { fmtHz, fmtPct, fmtUsd } from "@/components/explore/format";
+import { STORAGE_KEY, encodeRequest } from "@/components/workbench";
 import {
   DEFAULT_SPEC,
-  SPEC_STORAGE_KEY,
   candidateKey,
   formStateFromSpec,
   groupCandidates,
@@ -75,7 +75,7 @@ export default function ParetoExplorerPage() {
   const openInWorkbench = () => {
     if (!ranSpec) return;
     try {
-      window.localStorage.setItem(SPEC_STORAGE_KEY, JSON.stringify(ranSpec));
+      sessionStorage.setItem(STORAGE_KEY, encodeRequest({ spec: ranSpec }));
     } catch {
       // Storage may be unavailable (private mode) — still navigate.
     }
