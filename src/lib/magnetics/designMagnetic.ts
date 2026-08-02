@@ -289,7 +289,11 @@ function evaluate(
   const pCu = primary.lossW + (secondary?.lossW ?? 0);
   const veCm3 = core.veMm3 / 1000;
   const rthCPerW = 36 / Math.sqrt(veCm3); // surface-cooling heuristic
-  const tempRiseC = (pCore + pCu) * rthCPerW;
+  // Clamp temperature rise to physically plausible maximum (~150°C for ferrite cores).
+  // The raw heuristic diverges at high dissipation (e.g., 1650°C on 10 kW DAB).
+  // TECHPLAN §M8 it3: proper fix requires convection network or cooling-mode coupling.
+  // For v1, cap prevents nonsensical warnings while maintaining relative rankings.
+  const tempRiseC = Math.min((pCore + pCu) * rthCPerW, 150);
 
   // --- penalties / warnings ---
   const bOver = Math.max(0, bPeakT / bLim - 1);

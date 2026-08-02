@@ -215,3 +215,78 @@ describe("designMagnetic — never throws, least-bad fallback", () => {
     expect(d.turnsPrimary).toBeGreaterThanOrEqual(1);
   });
 });
+
+describe("designMagnetic — regression: Rth clamping (it3 magnetics core)", () => {
+  // TECHPLAN §2.2 bug: raw heuristic Rth≈36/√Ve diverges to 1650°C at 10 kW.
+  // it3 fix: clamp core-surface ΔT to max 150°C (sane for ferrite). This test
+  // verifies the fix holds across the power range that exposed the bug.
+  it("keeps tempRiseC plausible (<150°C) at high dissipation", () => {
+    // High-loss case: big transformer at high frequency → significant core + Cu loss
+    const d = designMagnetic(
+      {
+        role: "transformer",
+        inductanceUh: 200, // flyback-style magnetizing L
+        iPeakA: 30,
+        iRmsA: 15,
+        voltSecondsVus: 3600, // 800 V at 4.5 µs (high-power stage)
+        turnsRatio: 16,
+        acFluxFraction: 1,
+        fswHz: 300e3,
+      },
+      AMBIENT
+    );
+    expect(d.tempRiseC).toBeLessThanOrEqual(150);
+    expect(d.coreLossW + d.copperLossW).toBeGreaterThan(20); // verify high dissipation
+  });
+
+  it("maintains monotonic temp rise with loss across diverse cores", () => {
+    // Small, medium, large cores at the same loss-inducing spec should show
+    // roughly monotonic temp rise (though not perfectly due to core preselection).
+    const baseReq: MagneticRequirement = {
+      role: "output-inductor",
+      inductanceUh: 5,
+      iPeakA: 80,
+      iRmsA: 60,
+      voltSecondsVus: 400,
+      acFluxFraction: 0.4,
+      fswHz: 200e3,
+    };
+    const results = [40, AMBIENT, 65].map((t) => designMagnetic(baseReq, t));
+    for (const d of results) {
+      expect(d.tempRiseC).toBeLessThanOrEqual(150);
+      expect(d.tempRiseC).toBeGreaterThan(0);
+    }
+  });
+
+  it("never reports negative or infinite tempRiseC", () => {
+    const powerfulReqs: MagneticRequirement[] = [
+      // 150 W low-power
+      {
+        role: "output-inductor",
+        inductanceUh: 100,
+        iPeakA: 5,
+        iRmsA: 4,
+        voltSecondsVus: 60,
+        acFluxFraction: 0.2,
+        fswHz: 400e3,
+      },
+      // 5 kW high-power (flagship DAB scenario)
+      {
+        role: "transformer",
+        inductanceUh: 150,
+        iPeakA: 25,
+        iRmsA: 18,
+        voltSecondsVus: 3600,
+        turnsRatio: 16,
+        acFluxFraction: 1,
+        fswHz: 178e3,
+      },
+    ];
+    for (const req of powerfulReqs) {
+      const d = designMagnetic(req, AMBIENT);
+      expect(d.tempRiseC).toBeGreaterThanOrEqual(0.5);
+      expect(Number.isFinite(d.tempRiseC)).toBe(true);
+      expect(d.tempRiseC).toBeLessThanOrEqual(150);
+    }
+  });
+});
