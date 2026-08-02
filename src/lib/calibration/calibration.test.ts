@@ -151,7 +151,14 @@ describe("calibration harness — runAllAnchors aggregation", () => {
       console.log(`  Conversion: ${design.spec.conversion}`);
       if (design.losses) {
         const losses = design.losses;
+        const deviceTotal = losses.devices.reduce((sum, d) => sum + d.totalW, 0);
         console.log(`  Losses (W) @ ${design.spec.poutW}W nominal:`);
+        console.log(`    Device total: ${deviceTotal.toFixed(2)}`);
+        console.log(`      Conduction: ${losses.devices.reduce((sum, d) => sum + d.conductionW, 0).toFixed(2)}`);
+        console.log(`      Switching: ${losses.devices.reduce((sum, d) => sum + d.switchingW, 0).toFixed(2)}`);
+        console.log(`      Coss: ${losses.devices.reduce((sum, d) => sum + d.cossW, 0).toFixed(2)}`);
+        console.log(`      Gate: ${losses.devices.reduce((sum, d) => sum + d.gateW, 0).toFixed(2)}`);
+        console.log(`      Dead-time: ${losses.devices.reduce((sum, d) => sum + d.deadTimeW, 0).toFixed(2)}`);
         console.log(`    Magnetics core: ${losses.magneticsCoreW.toFixed(2)}`);
         console.log(`    Magnetics copper: ${losses.magneticsCopperW.toFixed(2)}`);
         console.log(`    Capacitor ESR: ${losses.capacitorW.toFixed(2)}`);
