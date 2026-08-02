@@ -97,14 +97,32 @@ export const A2_INFINEON_800V_12V_LLC: CalibrationAnchor = {
   notes: "ISOP half-bridge LLC; CoolGaN + OptiMOS switching; soft-switching ZVS; planar transformer. Published 800V→50V peak ~98%; optimizer can model 400V→50V variant.",
 };
 
-// A3: Navitas NV6xxx (Ruby-class) GaN Reference Design
-// Technology: Navitas GaN IC (integrated gate driver + power switch)
-// Product family: NV6300, NV6180, NV630x series
-// Power range: 3–5 kW
-// Efficiency: Unknown (design community materials exist but vendor portal access blocked)
-// Source: Navitas Semiconductor (portal access currently restricted)
-// Status: PENDING - requires direct vendor contact or design community materials
-export const A3_NAVITAS_GAN: CalibrationAnchor | null = null;
+// A3: Navitas 4.5 kW CRPS185 (GaNSafe 650V + GeneSiC Gen-3)
+// Topology: Interleaved CCM totem-pole PFC (SiC) + Full-bridge LLC (GaN)
+// Published efficiency: 97.0% (peak/full load)
+export const A3_NAVITAS_4500W_CRPS: CalibrationAnchor = {
+  id: "a3-navitas-4500w-crps185",
+  name: "Navitas 4.5 kW CRPS185 (TP-PFC + FB-LLC)",
+  source: "Navitas CRPS185 AI Data-Center PSU Reference Design",
+  refUrl: "https://www.semiconductor-today.com/news_items/2024/jul/navitas-260724.shtml",
+  spec: {
+    name: "Navitas 4.5 kW CRPS185 reverse-engineered",
+    conversion: "ac-dc",
+    vinMinV: 180,
+    vinNomV: 220,
+    vinMaxV: 264,
+    voutV: 50,
+    poutW: 4500,
+    bidirectional: false,
+    isolated: true,
+    ambientC: 50,
+    cooling: "forced-air",
+    rippleVoutPct: 1,
+  },
+  publishedEfficiencyPct: 97.0, // peak efficiency (full load)
+  nominalLoadPct: 100,
+  notes: "Interleaved TP-PFC (SiC 3rd-gen) + FB-LLC (GaN); 300+ kHz switching; published as 'Titanium Plus' platform. GaNSafe 650V + GeneSiC Gen-3 Fast SiC. Complete design collateral (schematics, BOM, test results) available from Navitas.",
+};
 
 // A4+: Extended TI series for power scaling validation
 // PMP23081: 2.5 kW PFC+LLC (similar class to A1)
@@ -120,7 +138,7 @@ export const A5_TI_PMP23110: CalibrationAnchor | null = null;
 export const ALL_ANCHORS: CalibrationAnchor[] = [
   A1_TI_PMP23126,
   A2_INFINEON_800V_12V_LLC,
-  // A3_NAVITAS_GAN,      // TODO: populate from Navitas search results (requires direct vendor contact)
+  A3_NAVITAS_4500W_CRPS,
   // A4_TI_PMP23081,      // TODO: add TI extended reference points
   // A5_TI_PMP23110,
 ].filter((a): a is CalibrationAnchor => a !== null);

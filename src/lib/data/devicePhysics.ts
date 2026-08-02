@@ -217,6 +217,26 @@ export const DEVICE_PHYSICS: Record<string, Partial<DevicePhysics>> = {
     provenance:
       "Wolfspeed G3R75MT12J datasheet: 1200 V 750 mΩ SiC MOSFET; Coss/Eoss integrated from datasheet curve @600 V; gate charge table; Vsd = 4.5 V @25 °C.",
   },
+  IGT65R035D2: {
+    rNorm100: 1.45,
+    rNorm150: 1.95,
+    kDynHard: 1.12,
+    kDynSoft: 1.05,
+    gfsS: 49,
+    qgs2Nc: 1.1,
+    qgdNc: 1.7,
+    rgIntOhm: 0.6,
+    rgExtOnOhm: 2.0,
+    rgExtOffOhm: 0.8,
+    vgsOffV: 0,
+    // CoolGaN 650V G5: 50% lower Eoss than Gen 2; Coss power-law fit fails (ρ < 2).
+    // Fallback to linear model calibrated on Eoss(325V) = 3.5 µJ contract point.
+    // Pending: obtain full Coss(V) curve from datasheet for piecewise table integration.
+    cossFit: { c0F: 2.15e-11, gamma: 0 },
+    rrevFactor: 2.0,
+    provenance:
+      "Infineon IGT65R035D2 CoolGaN 650V G5 datasheet (Rev 1.1, 2026-03-05): Qg/Qgs2/Qgd from DS gate-charge table; Rds/tempco (1% per °C) inferred from CoolGaN family; k_dyn from JEP173 GaN class @ 650 V; Coss linear fallback pending full Coss(V) curve (published 50% Eoss reduction vs Gen 2); device in Infineon's 98%+ efficiency 6kW ISOP LLC reference designs (March 2026).",
+  },
 };
 
 // ---------------------------------------------------------------------------

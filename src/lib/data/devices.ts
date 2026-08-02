@@ -291,6 +291,26 @@ export const SWITCH_DEVICES: SwitchDevice[] = [
     suppliers: [DK, MO],
     notes: "Medium-voltage CoolGaN for 48 V telecom/server",
   },
+  {
+    id: "IGT65R035D2",
+    mfr: "Infineon",
+    tech: "GaN",
+    vdsMaxV: 650,
+    idMaxA: 49,
+    rdsOnMohm25: 35,
+    rdsOnTempco: 0.010,
+    qgNc: 7.7,
+    qossNc: 19,
+    eossUj: 3.5,
+    qrrNc: 0,
+    vgsDriveV: 3,
+    vthV: 1.1,
+    rthJCcPerW: 0.76,
+    pkg: "TO-247plus",
+    priceUsd1k: 12.5,
+    suppliers: [DK, MO, AR],
+    notes: "CoolGaN 650V G5 (2026): optimized for 6–10 kW isolated DC-DC (98%+ efficiency); 60% lower Qg/Qoss vs Gen 2",
+  },
 
   // -------------------------------------------------------------------------
   // GaN — GaN Systems (Infineon)
