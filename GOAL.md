@@ -145,3 +145,4 @@ ahead of the calibration set.
 - 2026-08-01 · it0 · Scaffold + goal established.
 - 2026-08-01 · it2 · Device-physics core (TECHPLAN U1-U6): nonlinear Coss (V*Qoss), gate-charge-partition timing, power-law Rds(Tj)+k_dyn, Coss-limited Eoff, continuous ZVS fraction, anchor parts EPC2218/LMG3522/C3M0075120K; 551 tests green; adversarially verified.
 - 2026-08-01 · it1 · M1+M2 complete: 16 engine modules, optimizer, 6 API routes, 5 UI pages; MASTERPLAN.md adopted; 484 tests green, build green.
+- 2026-08-02 · it-ux-1 · Persona UX foundations landed (economics engine + /api/economics, format lib, glossary/persona primitives); UX audit found and fixed two real bugs: Pareto→workbench hand-off used the wrong storage/key/shape (silently fell back to the demo spec) and two DEFAULT_SPECs had drifted (vinMaxV 880 vs 900). 597 tests green. Deployment still blocked on Vercel project-creation permission (unchanged — see M3).
