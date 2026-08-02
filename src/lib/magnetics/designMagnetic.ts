@@ -329,7 +329,7 @@ function evaluate(
     0.05 * core.priceUsd +
     500 * bOver +
     300 * kuOver +
-    3 * tOver +
+    10 * tOver +
     20 * gapOver +
     4 * jOver +
     30 * lMissFrac;

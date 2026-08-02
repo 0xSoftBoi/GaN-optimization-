@@ -69,10 +69,10 @@ const FSW_HI_HZ = 1e6;
 const FSW_POINTS = 5;
 // Constraint: High-power designs rarely exceed these frequencies without severe losses
 const FSW_MAX_FOR_POWER: Record<string, number> = {
-  "llc-full-bridge": 400e3,        // LLC: 100-400 kHz typical
-  "llc-half-bridge": 400e3,        // LLC half: 100-400 kHz typical
+  "llc-full-bridge": 250e3,        // LLC: 100-250 kHz for high-efficiency (skin effect avoidance)
+  "llc-half-bridge": 250e3,        // LLC half: 100-250 kHz typical
   "psfb": 300e3,                    // PSFB: 50-300 kHz typical
-  "dab": 250e3,                     // DAB: 50-250 kHz typical
+  "dab": 150e3,                     // DAB: 50-150 kHz typical (soft-switching at lower freq)
   "flyback": 500e3,                 // Flyback: 100-500 kHz typical
   "totem-pole-pfc": 200e3,         // PFC: 50-200 kHz typical
 };
