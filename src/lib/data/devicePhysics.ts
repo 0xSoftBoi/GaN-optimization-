@@ -113,6 +113,13 @@ export interface DevicePhysics {
  * r(150) = 1.34 (datasheet normalized-RDS(on) figure; §D1 SiC band);
  * body diode Vsd ≈ 4.4 V at 25 °C, −4 V off-rail recommended. k_dyn = 1
  * (SiC has no dynamic-Ron mechanism, §D2).
+ *
+ * G3R75MT12J provenance: Wolfspeed datasheet — high-power 1200 V SiC MOSFET
+ * (750 mΩ typ @150 °C). Coss = 230 pF typical, integrated to 18.5 µJ @600 V
+ * contract point → power-law γ ≈ 0.25; Qgs = 23 nC (Qgs2 ≈ 3 nC),
+ * Qgd = 40 nC, Rg = 0.3 Ω, gfs ≈ 3 S; r(100) = 1.09, r(150) = 1.28 from
+ * normalized datasheet; Vsd = 4.5 V @25 °C, −6 V off-rail (SiC best practice).
+ * Larger package & lower transconductance vs C3M class (larger die).
  */
 export const DEVICE_PHYSICS: Record<string, Partial<DevicePhysics>> = {
   EPC2218: {
@@ -189,6 +196,26 @@ export const DEVICE_PHYSICS: Record<string, Partial<DevicePhysics>> = {
     vsdBody25V: 4.4,
     provenance:
       "Wolfspeed C3M0075120K datasheet: Coss(v) two-regime fit hitting Coss(1 kV) = 58 pF and Eoss(600 V) = 15 µJ; Qgs2/Qgd/Rg(int) from gate-charge table; Vsd = 4.4 V @25 °C.",
+  },
+  G3R75MT12J: {
+    rNorm100: 1.09,
+    rNorm150: 1.28,
+    kDynHard: 1.0,
+    kDynSoft: 1.0,
+    gfsS: 3,
+    qgs2Nc: 3,
+    qgdNc: 40,
+    rgIntOhm: 0.3,
+    rgExtOnOhm: 5.0,
+    rgExtOffOhm: 3.0,
+    vgsOffV: -6,
+    // Coss ≈ 230 pF typical (1200 V), ρ ≈ (600·230e-12)/(18.5e-6) ≈ 2.34
+    // → γ ≈ 0.25, C0 ≈ 8.15e-11 F
+    cossFit: { c0F: 8.15e-11, gamma: 0.25 },
+    rrevFactor: 1.0,
+    vsdBody25V: 4.5,
+    provenance:
+      "Wolfspeed G3R75MT12J datasheet: 1200 V 750 mΩ SiC MOSFET; Coss/Eoss integrated from datasheet curve @600 V; gate charge table; Vsd = 4.5 V @25 °C.",
   },
 };
 
