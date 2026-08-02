@@ -64,3 +64,31 @@ With 2 anchors showing −3% systematically:
 
 ## Iteration Summary
 Discovered and fixed critical TI published efficiency value, added Infineon anchor, identified systematic −3% physics tuning direction (device or magnetics). User feedback on "giving up too easily" validated—research yielded concrete data guiding next phase.
+
+## Root Cause Analysis (Deep Diagnosis)
+
+**Symptom:** −3% delta on both A1 and A2, despite using different vendors/topologies.
+
+**Finding:** Both designs execute with `topology.type = undefined` (degenerate design state), using **generic/default device physics** instead of matched actual components.
+
+**Architecture Issue:** Database structure prevents proper device matching:
+1. **SWITCH_DEVICES**: 42 parts in database, ALL with `vendor = "Unknown"` (vendor field not populated in frozen types.ts SwitchDevice schema)
+2. **DEVICE_PHYSICS**: Only 4 records (EPC2218, LMG3522R030, C3M0075120K, G3R75MT12J) — **zero Infineon CoolGaN records**
+3. **Optimizer fallback**: When device matching fails or produces no candidates, defaults to generic loss model
+
+**Why A2 fails specifically:**
+- A2 is Infineon CoolGaN 400V→50V LLC
+- Zero Infineon entries in DEVICE_PHYSICS
+- Optimizer can't match topology+vendor to device with actual physics
+- Falls back to generic device model → underestimates CoolGaN efficiency advantages (lower Rds, better Coss) → −3.00% delta
+
+**Why A1 still misses despite having LMG3522:**
+- A1 is TI PMP23126 (phase-shifted FB with active clamp)
+- We have LMG3522R030 physics, but topology.type=undefined suggests component selection failed
+- Optimizer may have picked DAB topology (because bidirectional=true) over actual phase-shifted FB topology
+- Generic DAB loss model ≠ actual phase-shifted FB physics → −3.77% delta
+
+**Path to ±0.5% gate:**
+1. **Add Infineon CoolGaN device physics** (Rds(on), Qg breakdown, nonlinear Coss table, k_dyn, Vsd) sourced from CoolGaN datasheet → A2 will use actual device physics
+2. **Expand SWITCH_DEVICES with vendor field** or add vendor-specific device records → enable topology+vendor matching
+3. **Verify LMG3522 physics** against TI datasheet → ensure A1's Rds(on) temp coefficient, gate charge model accuracy
