@@ -59,6 +59,54 @@ describe("calibration harness — A1 TI PMP23126 (3 kW OBC DAB)", () => {
   }
 });
 
+describe("calibration harness — A2 Infineon CoolGaN ISOP LLC", () => {
+  const a2 = ALL_ANCHORS.find((x) => x.id === "a2-infineon-isop-6kw");
+
+  it("anchor A2 is configured", () => {
+    expect(a2).toBeDefined();
+  });
+
+  if (a2) {
+    it("reproduces the design through designConverter", () => {
+      const result = runAnchor(a2);
+      expect(result.designResult).toBeDefined();
+      expect(result.modelEfficiencyPct).toBeGreaterThan(0);
+      expect(result.modelEfficiencyPct).toBeLessThan(100);
+    });
+
+    it("efficiency delta is tracked for A2", () => {
+      const result = runAnchor(a2);
+      const delta = result.deltaEfficiencyPct;
+      expect(Number.isFinite(delta)).toBe(true);
+      console.log(`A2 Infineon CoolGaN: published ${a2.publishedEfficiencyPct.toFixed(2)}% vs model ${result.modelEfficiencyPct.toFixed(2)}% (Δ ${delta.toFixed(3)}%)`);
+    });
+  }
+});
+
+describe("calibration harness — A3 Navitas CRPS185", () => {
+  const a3 = ALL_ANCHORS.find((x) => x.id === "a3-navitas-4500w-crps185");
+
+  it("anchor A3 is configured", () => {
+    expect(a3).toBeDefined();
+  });
+
+  if (a3) {
+    it("reproduces the design through designConverter", () => {
+      const result = runAnchor(a3);
+      expect(result.designResult).toBeDefined();
+      expect(result.modelEfficiencyPct).toBeGreaterThan(0);
+      expect(result.modelEfficiencyPct).toBeLessThan(100);
+    });
+
+    it("efficiency delta is tracked for A3", () => {
+      const result = runAnchor(a3);
+      const delta = result.deltaEfficiencyPct;
+      expect(Number.isFinite(delta)).toBe(true);
+      console.log(`A3 Navitas CRPS185: published ${a3.publishedEfficiencyPct.toFixed(2)}% vs model ${result.modelEfficiencyPct.toFixed(2)}% (Δ ${delta.toFixed(3)}%)`);
+    });
+  }
+});
+
 describe("calibration harness — runAllAnchors aggregation", () => {
   it("returns results for all configured anchors", () => {
     const { results } = runAllAnchors();
@@ -80,5 +128,48 @@ describe("calibration harness — runAllAnchors aggregation", () => {
     const { summary } = runAllAnchors();
     expect(summary).toBeTruthy();
     expect(summary).toMatch(/anchor/i);
+  });
+
+  it("logs calibration status for all anchors", () => {
+    const { results, summary } = runAllAnchors();
+    console.log("\n=== CALIBRATION STATUS ===");
+    console.log(summary);
+    for (const r of results) {
+      const status = r.passed ? "✓ PASS" : "✗ FAIL";
+      console.log(`${status} ${r.anchorName}: ${r.publishedEfficiencyPct.toFixed(2)}% (pub) vs ${r.modelEfficiencyPct.toFixed(2)}% (mod), Δ ${r.deltaEfficiencyPct.toFixed(3)}%`);
+    }
+  });
+
+  it("debug: loss breakdown for each anchor", () => {
+    const results = runAllAnchors().results;
+    console.log("\n=== LOSS BREAKDOWN ANALYSIS ===");
+    for (const r of results) {
+      const design = r.designResult;
+      console.log(`\n${r.anchorId}: ${r.anchorName}`);
+      console.log(`  Published vs Model: ${r.publishedEfficiencyPct.toFixed(2)}% vs ${r.modelEfficiencyPct.toFixed(2)}% (Δ ${r.deltaEfficiencyPct.toFixed(3)}%)`);
+      console.log(`  Topology: ${design.topology?.id || "(undefined)"} (${design.topology?.name})`);
+      console.log(`  Conversion: ${design.spec.conversion}`);
+      if (design.losses) {
+        const losses = design.losses;
+        console.log(`  Losses (W) @ ${design.spec.poutW}W nominal:`);
+        console.log(`    Magnetics core: ${losses.magneticsCoreW.toFixed(2)}`);
+        console.log(`    Magnetics copper: ${losses.magneticsCopperW.toFixed(2)}`);
+        console.log(`    Capacitor ESR: ${losses.capacitorW.toFixed(2)}`);
+        console.log(`    Overhead: ${losses.overheadW.toFixed(2)}`);
+        console.log(`    Total: ${losses.totalW.toFixed(2)}`);
+      }
+      if (design.warnings && design.warnings.length > 0) {
+        console.log(`  Warnings: ${design.warnings.length}`);
+        design.warnings.forEach((w, i) => {
+          if (i < 3) console.log(`    [${i}] ${w.substring(0, 100)}`);
+        });
+      }
+      if (design.efficiencyCurve) {
+        const curve100 = design.efficiencyCurve.find(p => p.loadPct === 100);
+        if (curve100) {
+          console.log(`  Calculated loss (100-eff): ${(100 - curve100.efficiencyPct).toFixed(2)}%`);
+        }
+      }
+    }
   });
 });
