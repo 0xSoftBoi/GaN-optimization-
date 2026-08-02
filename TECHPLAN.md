@@ -217,6 +217,23 @@ fully checked.
   aggressive — it4's per-edge ZVS + dead-time optimization should recover the
   realistic curve (real designs burst-mode/extend phase shift at light load).
 
+## 2.2 Bug found via ad-hoc showcase runs (README example-runs section)
+
+Six `designConverter()` calls across the power range surfaced a magnetics
+thermal blow-up at high dissipation: the 5 kW DAB flagship warns of a 215 °C
+transformer hot-spot rise, and the 10 kW DAB (liquid-cooled) warns of 1650 °C
+— both physically absurd, both still pass `thermalOk`/`compliancePassed`
+because those gates check junction Tj (device-level, via the injected
+heatsink chain), not the magnetics surface-temperature heuristic. Root cause
+is exactly `Rth ≈ 36/√Ve` (§M8): it has no upper bound and no coupling to
+ambient/cooling mode, so above some (coreLossW+copperLossW) it diverges
+instead of saturating. it3's "honest Rth + temperature iteration" (§M8) must
+add a physical cap (e.g. iterate against a real convection/conduction network
+per §H1-H2, or at minimum clamp core-surface ΔT to a sane multiple of the
+device Tj margin) and a regression test asserting magnetics tempRiseC stays
+in a plausible band (<150 °C) across the power sweep this ad-hoc script used
+(150 W – 10 kW, natural/forced-air/liquid). Do not ship it3 without this.
+
 ## 3. Definition of physics-credible (sign-off checklist)
 
 A senior power engineer signs off when every line holds:
