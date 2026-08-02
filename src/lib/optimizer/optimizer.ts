@@ -67,6 +67,15 @@ const MAX_TOPOLOGIES = 3;
 const FSW_LO_HZ = 100e3;
 const FSW_HI_HZ = 1e6;
 const FSW_POINTS = 5;
+// Constraint: High-power designs rarely exceed these frequencies without severe losses
+const FSW_MAX_FOR_POWER: Record<string, number> = {
+  "llc-full-bridge": 400e3,        // LLC: 100-400 kHz typical
+  "llc-half-bridge": 400e3,        // LLC half: 100-400 kHz typical
+  "psfb": 300e3,                    // PSFB: 50-300 kHz typical
+  "dab": 250e3,                     // DAB: 50-250 kHz typical
+  "flyback": 500e3,                 // Flyback: 100-500 kHz typical
+  "totem-pole-pfc": 200e3,         // PFC: 50-200 kHz typical
+};
 const LOAD_POINTS_PCT = [10, 25, 50, 75, 100];
 /** Everything-that-isn't-modelled volume multiplier (case, connectors, air). */
 const PACKAGING_FACTOR = 2;
@@ -80,14 +89,20 @@ function fomRdsQg(d: SwitchDevice): number {
   return d.rdsOnMohm25 * d.qgNc;
 }
 
-function fswGrid(spec: DesignSpec): number[] {
+function fswGrid(spec: DesignSpec, topoId?: string): number[] {
+  // Determine max frequency based on topology (avoid unrealistic high-frequency designs)
+  let fswMax = FSW_HI_HZ;
+  if (topoId && FSW_MAX_FOR_POWER[topoId]) {
+    fswMax = Math.min(fswMax, FSW_MAX_FOR_POWER[topoId]);
+  }
+
   if (spec.fswHz !== undefined && spec.fswHz > 0) {
     // User-forced frequency: sweep a narrow geometric neighborhood centered
     // on it (the middle point is exactly spec.fswHz).
     const f = spec.fswHz;
-    return [...new Set(logSpace(f / 1.5, f * 1.5, 3).map((x) => clamp(x, 25e3, 3e6)))];
+    return [...new Set(logSpace(f / 1.5, f * 1.5, 3).map((x) => clamp(x, 25e3, fswMax)))];
   }
-  return logSpace(FSW_LO_HZ, FSW_HI_HZ, FSW_POINTS);
+  return logSpace(FSW_LO_HZ, fswMax, FSW_POINTS);
 }
 
 /**
@@ -586,11 +601,18 @@ export function designConverter(spec: DesignSpec): DesignResult {
     );
   }
   const shortlist = qualified.slice(0, MAX_TOPOLOGIES);
-  const grid = fswGrid(effSpec);
+  const baseGrid = fswGrid(effSpec);
 
   // ---- 2. Candidate sweep -------------------------------------------------
   const cands: CandidateEval[] = [];
   for (const ts of shortlist) {
+    // Apply topology-specific frequency limits to avoid unrealistic high-freq designs
+    const topoGrid = baseGrid.filter((f) => {
+      const fswMax = FSW_MAX_FOR_POWER[ts.topology.id] ?? FSW_HI_HZ;
+      return f <= fswMax;
+    });
+    const grid = topoGrid.length > 0 ? topoGrid : [Math.min(baseGrid[0]!, FSW_MAX_FOR_POWER[ts.topology.id] ?? FSW_HI_HZ)];
+
     for (const fsw of grid) {
       const shared = buildShared(effSpec, ts.topology.id, fsw, warnings);
       for (const dev of shared.primaryPool) {

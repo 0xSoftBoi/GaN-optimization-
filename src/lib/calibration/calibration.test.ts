@@ -140,6 +140,32 @@ describe("calibration harness — runAllAnchors aggregation", () => {
     }
   });
 
+  it("debug: magnetics operating points and wire selection", () => {
+    const a1 = ALL_ANCHORS.find((x) => x.id === "a1-ti-pmp23126");
+    const a2 = ALL_ANCHORS.find((x) => x.id === "a2-infineon-isop-6kw");
+
+    for (const anchor of [a1, a2].filter(Boolean)) {
+      if (!anchor) continue;
+      const result = runAnchor(anchor);
+      const design = result.designResult;
+
+      console.log(`\n${anchor.id}: Magnetics detail`);
+      console.log(`  Fsw: ${design.fswHz} Hz`);
+
+      for (const mag of design.magnetics) {
+        console.log(`\n  ${mag.role}:`);
+        console.log(`    Core: ${mag.core.id}`);
+        console.log(`      Ae: ${mag.core.aeMm2} mm², Ve: ${mag.core.veMm3} mm³, MLT: ${mag.core.mltMm} mm`);
+        console.log(`    Turns: ${mag.turnsPrimary}${mag.turnsSecondary ? `/${mag.turnsSecondary}` : ''}, Gap: ${mag.airGapMm.toFixed(3)} mm`);
+        console.log(`    Wire: ${mag.wirePrimary.id} (Cu area: ${mag.wirePrimary.copperAreaMm2.toFixed(4)} mm², Rdc: ${mag.wirePrimary.rdcMohmPerM.toFixed(3)} mΩ/m)`);
+        console.log(`    B-field: peak ${mag.bPeakT.toFixed(3)} T`);
+        console.log(`    Copper loss: ${mag.copperLossW.toFixed(2)}W, Core loss: ${mag.coreLossW.toFixed(2)}W`);
+        console.log(`    Temp rise: ${mag.tempRiseC.toFixed(1)}°C, Window util: ${(mag.windowUtilization * 100).toFixed(1)}%`);
+        console.log(`    Notes: ${(mag.notes || "").substring(0, 120)}`);
+      }
+    }
+  });
+
   it("debug: loss breakdown for each anchor", () => {
     const results = runAllAnchors().results;
     console.log("\n=== LOSS BREAKDOWN ANALYSIS ===");
