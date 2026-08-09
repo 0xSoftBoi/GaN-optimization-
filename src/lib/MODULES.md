@@ -51,6 +51,14 @@ Required public exports (exact names/signatures; extra exports welcome):
   (PWL state-space, ≥6 switching periods, steady state; supports at least
   sync-buck, boost, dab; graceful `notes` fallback for others)
 
+## workload-power (`src/lib/workload-power/`)
+- `parsePowerTrace(value: unknown): PowerTrace` — strict LCA-1 schema-v1 parser
+- `summarizePowerTrace(trace: PowerTrace, series?: PowerSeries): PowerTraceSummary`
+  — trapezoidal energy plus peak/P95/load-step/slew/state-duty evidence
+- `converterSpecFromPowerTrace(trace, base, options?): TraceDrivenDesignInput`
+  — derives a normal `DesignSpec` from peak workload power while retaining the
+  transient summary; measured watts are required unless estimates are explicit
+
 ## firmware (`src/lib/firmware/`)
 - `generateFirmware(target: FirmwarePackage["target"], id: TopologyId, spec: DesignSpec, fswHz: number, comp: CompensatorDesign): FirmwarePackage`
 

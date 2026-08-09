@@ -34,6 +34,15 @@ VoltForge generates:
 Plus a **component terminal** ("Bloomberg for power electronics") and a
 **Pareto explorer** for efficiency vs cost vs density trade-offs.
 
+## Workload-to-power integration
+
+VoltForge can consume the versioned LCA-1 accelerator power trace and turn it
+into a converter sizing input without discarding burst behavior. The integration
+reports energy, peak/P95 power, load step, slew, and activity-state duty cycle;
+it requires measured watts by default and keeps estimates visibly labeled.
+
+See [LCA-1 workload power → VoltForge](./docs/LCA1_POWER_TRACE.md).
+
 ## Stack
 
 Next.js 15 · TypeScript · Tailwind · Vitest. The engineering core is pure,

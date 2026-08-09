@@ -110,6 +110,8 @@ Transim-style vendor sponsorship.
       publish comparison in /docs — gate for public accuracy claims
 - [ ] ngspice round-trip validation of generated netlists in CI
 - [x] KiCad s-expression schematic export; LTspice netlist export
+- [x] Workload-power contract: strict LCA-1 trace parser, measured-by-default
+      energy/transient summary, and peak-load conversion into `DesignSpec`
 - [ ] BOM: live pricing/availability fields + region-aware second sourcing
 - [ ] Multi-objective optimizer honoring density (W/in³) + cost ceilings
 - [ ] Device DB ≥80 parts with provenance flags (vendor-claimed vs characterized)
@@ -140,3 +142,5 @@ ahead of the calibration set.
 
 - 2026-08-01 · it0 · Scaffold + goal established.
 - 2026-08-01 · it1 · M1+M2 complete: 16 engine modules, optimizer, 6 API routes, 5 UI pages; MASTERPLAN.md adopted; 484 tests green, build green.
+- 2026-08-09 · grid-to-gate · LCA-1 workload-power consumer added; 530 tests,
+  typecheck, and production build green.
