@@ -1,0 +1,6 @@
+interface:
+  display_name: "GaN Optimization"
+  short_description: "Repo-specific patterns and workflows for GaN-optimization-"
+  default_prompt: "Use the GaN-optimization- repo skill to follow existing architecture, testing, and workflow conventions."
+policy:
+  allow_implicit_invocation: true

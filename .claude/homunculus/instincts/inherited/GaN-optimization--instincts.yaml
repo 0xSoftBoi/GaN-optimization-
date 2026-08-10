@@ -1,0 +1,549 @@
+# Instincts generated from https://github.com/0xSoftBoi/GaN-optimization-
+# Generated: 2026-08-01T18:32:51.536Z
+# Version: 2.0
+# NOTE: This file supplements (does not replace) any existing curated instincts.
+# High-confidence manually curated instincts should be preserved alongside these.
+
+---
+id: GaN-optimization--commit-length
+trigger: "when writing a commit message"
+confidence: 0.6
+domain: git
+source: repo-analysis
+source_repo: https://github.com/0xSoftBoi/GaN-optimization-
+---
+
+# GaN Optimization  Commit Length
+
+## Action
+
+Write moderate-length commit messages (~69 characters)
+
+## Evidence
+
+- Average commit message length: 69 chars
+- Based on 11 commits
+
+---
+id: GaN-optimization--naming-files
+trigger: "when creating a new file"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/0xSoftBoi/GaN-optimization-
+---
+
+# GaN Optimization  Naming Files
+
+## Action
+
+Use camelCase naming convention
+
+## Evidence
+
+- Analyzed file naming patterns in repository
+- Dominant pattern: camelCase
+
+---
+id: GaN-optimization--import-alias
+trigger: "when importing modules"
+confidence: 0.85
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/0xSoftBoi/GaN-optimization-
+---
+
+# GaN Optimization  Import Alias
+
+## Action
+
+Use path aliases (@/, ~/) instead of relative imports
+
+## Evidence
+
+- Import analysis shows alias pattern
+- Example: import { x } from '@/lib/x'
+
+---
+id: GaN-optimization--export-style
+trigger: "when exporting from a module"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: https://github.com/0xSoftBoi/GaN-optimization-
+---
+
+# GaN Optimization  Export Style
+
+## Action
+
+Prefer named exports
+
+## Evidence
+
+- Export pattern analysis
+- Dominant style: named
+
+---
+id: GaN-optimization--arch-type-based
+trigger: "when adding new code"
+confidence: 0.8
+domain: architecture
+source: repo-analysis
+source_repo: https://github.com/0xSoftBoi/GaN-optimization-
+---
+
+# GaN Optimization  Arch Type Based
+
+## Action
+
+Place code in the appropriate type folder (components/, services/, utils/, etc.)
+
+## Evidence
+
+- Type-based module organization detected
+- Folders: app, components, lib
+
+---
+id: GaN-optimization--test-colocate
+trigger: "when writing tests"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/0xSoftBoi/GaN-optimization-
+---
+
+# GaN Optimization  Test Colocate
+
+## Action
+
+Place test file next to the source file (e.g., Button.test.tsx next to Button.tsx)
+
+## Evidence
+
+- Colocated test pattern detected
+- Tests live alongside source files
+
+---
+id: GaN-optimization--test-framework
+trigger: "when writing tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/0xSoftBoi/GaN-optimization-
+---
+
+# GaN Optimization  Test Framework
+
+## Action
+
+Use vitest as the test framework
+
+## Evidence
+
+- Test framework detected: vitest
+- File pattern: *.test.ts
+
+---
+id: GaN-optimization--test-naming
+trigger: "when creating a test file"
+confidence: 0.85
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/0xSoftBoi/GaN-optimization-
+---
+
+# GaN Optimization  Test Naming
+
+## Action
+
+Name test files using the pattern: *.test.ts
+
+## Evidence
+
+- File pattern: *.test.ts
+- Consistent across test files
+
+---
+id: GaN-optimization--test-types
+trigger: "when planning tests for a feature"
+confidence: 0.7
+domain: testing
+source: repo-analysis
+source_repo: https://github.com/0xSoftBoi/GaN-optimization-
+---
+
+# GaN Optimization  Test Types
+
+## Action
+
+Write unit, integration tests to match project standards
+
+## Evidence
+
+- Test types detected: unit, integration
+- Coverage config: no
+
+---
+id: GaN-optimization--workflow-add-new-engine-module
+trigger: "when doing add new engine module"
+confidence: 0.7
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/0xSoftBoi/GaN-optimization-
+---
+
+# GaN Optimization  Workflow Add New Engine Module
+
+## Action
+
+Follow the add-new-engine-module workflow:
+1. Create implementation file in src/lib/<module>/<module>.ts
+2. Create test file in src/lib/<module>/<module>.test.ts
+3. Create or update index file in src/lib/<module>/index.ts
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~4x per month
+- Files: src/lib/<module>/<module>.ts, src/lib/<module>/<module>.test.ts, src/lib/<module>/index.ts
+
+---
+id: GaN-optimization--workflow-add-api-endpoint
+trigger: "when doing add api endpoint"
+confidence: 0.6
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/0xSoftBoi/GaN-optimization-
+---
+
+# GaN Optimization  Workflow Add Api Endpoint
+
+## Action
+
+Follow the add-api-endpoint workflow:
+1. Create route implementation file src/app/api/<endpoint>/route.ts
+2. Create test file src/app/api/<endpoint>/route.test.ts
+3. Update or create related UI page in src/app/<endpoint>/page.tsx
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~2x per month
+- Files: src/app/api/<endpoint>/route.ts, src/app/api/<endpoint>/route.test.ts, src/app/<endpoint>/page.tsx
+
+---
+id: GaN-optimization--workflow-add-or-update-project-goal-or-plan-doc
+trigger: "when doing add or update project goal or plan doc"
+confidence: 0.65
+domain: workflow
+source: repo-analysis
+source_repo: https://github.com/0xSoftBoi/GaN-optimization-
+---
+
+# GaN Optimization  Workflow Add Or Update Project Goal Or Plan Doc
+
+## Action
+
+Follow the add-or-update-project-goal-or-plan-doc workflow:
+1. Edit or add GOAL.md, MASTERPLAN.md, TECHPLAN.md, or docs/PHYSICS.md
+2. Commit with summary of changes
+
+## Evidence
+
+- Workflow detected from commit patterns
+- Frequency: ~3x per month
+- Files: GOAL.md, MASTERPLAN.md, TECHPLAN.md
+
+---
+id: gan-optimization--naming-files-camelCase
+trigger: "When creating or renaming a file in the codebase"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: 0xSoftBoi/GaN-optimization-
+---
+
+# Gan Optimization  Naming Files CamelCase
+
+## Action
+
+Use camelCase for file names
+
+## Evidence
+
+- Pattern in namingConventions.files
+- src/lib/<module>/<module>.ts
+
+---
+id: gan-optimization--naming-functions-camelCase
+trigger: "When defining a function"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: 0xSoftBoi/GaN-optimization-
+---
+
+# Gan Optimization  Naming Functions CamelCase
+
+## Action
+
+Name the function using camelCase
+
+## Evidence
+
+- Pattern in namingConventions.functions
+
+---
+id: gan-optimization--naming-classes-PascalCase
+trigger: "When defining a class"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: 0xSoftBoi/GaN-optimization-
+---
+
+# Gan Optimization  Naming Classes PascalCase
+
+## Action
+
+Name the class using PascalCase
+
+## Evidence
+
+- Pattern in namingConventions.classes
+
+---
+id: gan-optimization--naming-constants-SCREAMING_SNAKE_CASE
+trigger: "When defining a constant"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: 0xSoftBoi/GaN-optimization-
+---
+
+# Gan Optimization  Naming Constants SCREAMING_SNAKE_CASE
+
+## Action
+
+Name the constant using SCREAMING_SNAKE_CASE
+
+## Evidence
+
+- Pattern in namingConventions.constants
+
+---
+id: gan-optimization--import-alias-style
+trigger: "When importing modules"
+confidence: 0.7
+domain: code-style
+source: repo-analysis
+source_repo: 0xSoftBoi/GaN-optimization-
+---
+
+# Gan Optimization  Import Alias Style
+
+## Action
+
+Use alias import style
+
+## Evidence
+
+- Pattern in importStyle: alias
+
+---
+id: gan-optimization--export-named-style
+trigger: "When exporting modules or functions"
+confidence: 0.8
+domain: code-style
+source: repo-analysis
+source_repo: 0xSoftBoi/GaN-optimization-
+---
+
+# Gan Optimization  Export Named Style
+
+## Action
+
+Use named exports
+
+## Evidence
+
+- Pattern in exportStyle: named
+
+---
+id: gan-optimization--test-file-pattern
+trigger: "When creating a test file"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: 0xSoftBoi/GaN-optimization-
+---
+
+# Gan Optimization  Test File Pattern
+
+## Action
+
+Name the file with a .test.ts suffix
+
+## Evidence
+
+- Pattern in testing.filePattern
+- src/lib/<module>/<module>.test.ts
+
+---
+id: gan-optimization--test-framework-vitest
+trigger: "When writing or configuring tests"
+confidence: 0.9
+domain: testing
+source: repo-analysis
+source_repo: 0xSoftBoi/GaN-optimization-
+---
+
+# Gan Optimization  Test Framework Vitest
+
+## Action
+
+Use Vitest as the test framework
+
+## Evidence
+
+- Pattern in testing.framework
+
+---
+id: gan-optimization--test-types-unit-integration
+trigger: "When deciding what tests to write"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: 0xSoftBoi/GaN-optimization-
+---
+
+# Gan Optimization  Test Types Unit Integration
+
+## Action
+
+Write both unit and integration tests as appropriate
+
+## Evidence
+
+- Pattern in testing.testTypes
+
+---
+id: gan-optimization--test-colocated
+trigger: "When placing test files"
+confidence: 0.8
+domain: testing
+source: repo-analysis
+source_repo: 0xSoftBoi/GaN-optimization-
+---
+
+# Gan Optimization  Test Colocated
+
+## Action
+
+Colocate test files with their implementation files
+
+## Evidence
+
+- Pattern in architecture.testLocation
+- src/lib/<module>/<module>.test.ts
+
+---
+id: gan-optimization--commit-freeform-no-prefix
+trigger: "When writing a commit message"
+confidence: 0.8
+domain: git
+source: repo-analysis
+source_repo: 0xSoftBoi/GaN-optimization-
+---
+
+# Gan Optimization  Commit Freeform No Prefix
+
+## Action
+
+Use a freeform, descriptive commit message without a strict prefix
+
+## Evidence
+
+- Pattern in commits.type: freeform
+- Examples: 'Clarify thermal module contract: heatsink catalog injected, not imported'
+
+---
+id: gan-optimization--commit-length-moderate
+trigger: "When writing a commit message"
+confidence: 0.7
+domain: git
+source: repo-analysis
+source_repo: 0xSoftBoi/GaN-optimization-
+---
+
+# Gan Optimization  Commit Length Moderate
+
+## Action
+
+Keep the commit message concise (around 69 characters on average)
+
+## Evidence
+
+- Pattern in commits.averageLength
+
+---
+id: gan-optimization--add-new-engine-module
+trigger: "When a new engine module or major feature is being added to src/lib/"
+confidence: 0.95
+domain: workflow
+source: repo-analysis
+source_repo: 0xSoftBoi/GaN-optimization-
+---
+
+# Gan Optimization  Add New Engine Module
+
+## Action
+
+Create implementation file, test file, and index file for the module in src/lib/<module>/
+
+## Evidence
+
+- Workflow: add-new-engine-module
+- Files: src/lib/<module>/<module>.ts, .test.ts, index.ts
+
+---
+id: gan-optimization--add-api-endpoint
+trigger: "When a new API route is needed under src/app/api/"
+confidence: 0.9
+domain: workflow
+source: repo-analysis
+source_repo: 0xSoftBoi/GaN-optimization-
+---
+
+# Gan Optimization  Add Api Endpoint
+
+## Action
+
+Create route implementation, test file, and update/create related UI page
+
+## Evidence
+
+- Workflow: add-api-endpoint
+- Files: src/app/api/<endpoint>/route.ts, route.test.ts, src/app/<endpoint>/page.tsx
+
+---
+id: gan-optimization--add-or-update-project-goal-or-plan-doc
+trigger: "When updating project goals, masterplan, technical plan, or foundational research docs"
+confidence: 0.85
+domain: workflow
+source: repo-analysis
+source_repo: 0xSoftBoi/GaN-optimization-
+---
+
+# Gan Optimization  Add Or Update Project Goal Or Plan Doc
+
+## Action
+
+Edit or add GOAL.md, MASTERPLAN.md, TECHPLAN.md, or docs/PHYSICS.md and commit with a summary
+
+## Evidence
+
+- Workflow: add-or-update-project-goal-or-plan-doc
+- Files: GOAL.md, MASTERPLAN.md, TECHPLAN.md, docs/PHYSICS.md
+
